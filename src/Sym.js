@@ -187,7 +187,7 @@ if (!window.sym) {
                 charSet: true,
                 challenge: true,
                 checked: true,
-                cite: true, 
+                cite: true,
                 classID: true,
                 className: true,
                 cols: true,
@@ -392,7 +392,7 @@ if (!window.sym) {
                 if (!isNaN(parseInt(parsedIndex))) {
                     $index = parsedIndex;
                 }
-                else{
+                else {
                     $index = elem.__symModelKey;
                 }
                 while ((execResult = modelReg.exec(nakedValue)) !== null) {
@@ -442,27 +442,32 @@ if (!window.sym) {
                 var itemModel = elem.loopTemplate.loopModel.list,
                     oldRenderedList = {};
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
-                    
+
                     //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
                     for (var i = 0; i < elem.childNodes.length; i++) {
-                        oldRenderedList[elem.childNodes[i].__symId] = elem.childNodes[i];
+                        var elemId = (elem.childNodes[i].nodeType !== Node.TEXT_NODE) ? elem.childNodes[i].__symElementId : elem.__symChildElementId;
+                        oldRenderedList[elemId] = elem.childNodes[i];
                     }
                     for (var key in itemModel) {
                         //if current itemModel element's type is string, wrap this element by String, 
-                        //because we need to keep __symId value in its attribute.
-                        itemModel[key] = (typeof itemModel[key] === 'string' ? new String(itemModel[key]) : itemModel[key]);
+                        //because we need to keep __symElementId value in its attribute.
                         var item = itemModel[key];
 
                         //if this condition will be matched then no need to clone and append new element, it already exists 
-                        if (item.__symId && oldRenderedList[item.__symId]) {
-                            delete oldRenderedList[item.__symId];
+                        if (item.__symElementId && oldRenderedList[item.__symElementId]) {
+                            delete oldRenderedList[item.__symElementId];
                         }
                         else {
                             var renderedItem = elem.loopTemplate.cloneNode(true);
                             deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
                             //generate new id to keep elements unique
-                            renderedItem.__symId = generateId();
-                            item.__symId = renderedItem.__symId;
+                            renderedItem.__symElementId = generateId();
+                            if (typeof item === 'string') {
+                                elem.__symChildElementId = renderedItem.__symElementId;
+                            }
+                            else {
+                                item.__symElementId = renderedItem.__symElementId;
+                            }
 
                             if (!renderedItem.__symModels) {
                                 renderedItem.__symModels = {};
@@ -546,7 +551,7 @@ if (!window.sym) {
                         }
                     }
                 }
-                if(elem.hasOwnProperty('__symModelKey') && !curChild.hasOwnProperty('__symModelKey') ){
+                if (elem.hasOwnProperty('__symModelKey') && !curChild.hasOwnProperty('__symModelKey')) {
                     curChild.__symModelKey = elem.__symModelKey;
                 }
                 createModelScope(curChild, force);
@@ -634,7 +639,7 @@ if (!window.sym) {
                         }
                     }
 
-                    elem.__symId = generateId();
+                    elem.__symElementId = generateId();
                 }
 
                 //append child elements
