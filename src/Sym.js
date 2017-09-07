@@ -187,7 +187,7 @@ if (!window.sym) {
                 charSet: true,
                 challenge: true,
                 checked: true,
-                cite: true,
+                cite: true, 
                 classID: true,
                 className: true,
                 cols: true,
@@ -353,7 +353,7 @@ if (!window.sym) {
             idCounter = 0;
 
         //model detection regexp and its execution result definitions
-        var modelReg = /[{]([a-zA-z.:'"?!\s=|&+\-*\/]*)[}]/g, // /\{([!])*\s*([a-zA-Z_$][a-zA-Z_0-9]*|([a-zA-Z_$][a-zA-Z_0-9]*[.])+([a-zA-Z_$][a-zA-Z_0-9]*)+)\s*\}/gi,
+        var modelReg = /[{]([a-zA-z.:'"?!\s=|&+\-*\/$]*)[}]/g, // /\{([!])*\s*([a-zA-Z_$][a-zA-Z_0-9]*|([a-zA-Z_$][a-zA-Z_0-9]*[.])+([a-zA-Z_$][a-zA-Z_0-9]*)+)\s*\}/gi,
             execResult;
 
         //it will be used to generate id for elements which has no id
@@ -387,10 +387,13 @@ if (!window.sym) {
         var findAndReplaceExecResult = function (elem, nakedValue, models) {
             var parsedValue = nakedValue;
             if (~nakedValue.indexOf('{') && ~nakedValue.indexOf('{')) {
-                var index = -1;
-                var parsedIndex = parseInt(elem.__symModelIndex);
+                var $index = -1;
+                var parsedIndex = parseInt(elem.__symModelKey);
                 if (!isNaN(parseInt(parsedIndex))) {
-                    index = parsedIndex;
+                    $index = parsedIndex;
+                }
+                else{
+                    $index = elem.__symModelKey;
                 }
                 while ((execResult = modelReg.exec(nakedValue)) !== null) {
                     var executableValue = execResult[1];
@@ -438,17 +441,17 @@ if (!window.sym) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list,
                     oldRenderedList = {};
-                if (Array.isArray(itemModel) && elem.loopTemplate instanceof Node) {
-
+                if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
+                    
                     //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
                     for (var i = 0; i < elem.childNodes.length; i++) {
                         oldRenderedList[elem.childNodes[i].__symId] = elem.childNodes[i];
                     }
-                    for (var i = 0; i < itemModel.length; i++) {
+                    for (var key in itemModel) {
                         //if current itemModel element's type is string, wrap this element by String, 
                         //because we need to keep __symId value in its attribute.
-                        itemModel[i] = (typeof itemModel[i] === 'string' ? new String(itemModel[i]) : itemModel[i]);
-                        var item = itemModel[i];
+                        itemModel[key] = (typeof itemModel[key] === 'string' ? new String(itemModel[key]) : itemModel[key]);
+                        var item = itemModel[key];
 
                         //if this condition will be matched then no need to clone and append new element, it already exists 
                         if (item.__symId && oldRenderedList[item.__symId]) {
@@ -465,9 +468,9 @@ if (!window.sym) {
                                 renderedItem.__symModels = {};
                             }
                             //assign current model to list-item element
-                            renderedItem.__symModels[elem.loopTemplate.loopModel.name] = itemModel[i];
-                            renderedItem.__symModel = itemModel[i];
-                            renderedItem.__symModelIndex = i;
+                            renderedItem.__symModels[elem.loopTemplate.loopModel.name] = itemModel[key];
+                            renderedItem.__symModel = itemModel[key];
+                            renderedItem.__symModelKey = key;
 
                             //append list item to element
                             elem.appendChild(renderedItem);
@@ -542,6 +545,9 @@ if (!window.sym) {
                             curChild.__symModels[key] = elem.__symModels[key];
                         }
                     }
+                }
+                if(elem.hasOwnProperty('__symModelKey') && !curChild.hasOwnProperty('__symModelKey') ){
+                    curChild.__symModelKey = elem.__symModelKey;
                 }
                 createModelScope(curChild, force);
             }
