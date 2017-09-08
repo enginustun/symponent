@@ -8,21 +8,6 @@ if (!window.sym) {
     function replaceAll(str, find, replace) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
-    function getValueByStringAttr(o, s) {
-        s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
-        s = s.replace(/^\./, ''); // strip a leading dot
-        var a = s.split('.');
-        for (var i = 0, n = a.length; i < n - 1; ++i) {
-            var k = a[i];
-            if (k in o) {
-                o = o[k];
-            } else {
-                return;
-            }
-        }
-        var k = a[a.length - 1];
-        return o[k];
-    };
 
     // sym library
     window.sym = (new function () {
