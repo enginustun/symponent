@@ -609,7 +609,7 @@ if (!window.sym) {
             return elem;
         }
 
-        self.defineLoop = function (name, list) {
+        self.createLoopModel = function (name, list) {
             return { name: name, list: list };
         }
     }());
