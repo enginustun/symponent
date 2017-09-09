@@ -151,10 +151,7 @@ if (!window.sym) {
                 text: true,
                 tspan: true
             },
-            allowedProperties = {
-                /**
-                 * Standard Properties
-                 */
+            allowedProperties = { 
                 accept: true,
                 acceptCharset: true,
                 accessKey: true,
@@ -164,7 +161,6 @@ if (!window.sym) {
                 alt: true,
                 async: true,
                 autoComplete: true,
-                // autoFocus is polyfilled/normalized by AutoFocusUtils autoFocus: false,
                 autoPlay: true,
                 capture: true,
                 cellPadding: true,
@@ -183,7 +179,7 @@ if (!window.sym) {
                 controls: true,
                 coords: true,
                 crossOrigin: true,
-                data: true, // For `<object />` acts as `src`.
+                data: true,
                 dateTime: true,
                 'default': true,
                 defaultvalue: true,
@@ -231,8 +227,6 @@ if (!window.sym) {
                 method: true,
                 min: true,
                 minLength: true,
-                // Caution; `option.selected` is not updated if `select.multiple` is disabled
-                // with `removeAttribute`.
                 multiple: true,
                 muted: true,
                 name: true,
@@ -276,56 +270,31 @@ if (!window.sym) {
                 tabIndex: true,
                 target: true,
                 title: true,
-                // Setting .type throws on non-<input> tags
                 type: true,
                 useMap: true,
                 value: true,
                 width: true,
                 wmode: true,
                 wrap: true,
-
-                /**
-                 * RDFa Properties
-                 */
                 about: true,
                 datatype: true,
                 inlist: true,
                 prefix: true,
-                // property is also supported for OpenGraph in meta tags.
                 property: true,
                 resource: true,
                 'typeof': true,
                 vocab: true,
-
-                /**
-                 * Non-standard Properties
-                 */
-                // autoCapitalize and autoCorrect are supported in Mobile Safari for keyboard
-                // hints.
                 autoCapitalize: true,
                 autoCorrect: true,
-                // autoSave allows WebKit/Blink to persist values of input fields on page
-                // reloads
                 autoSave: true,
-                // color is for Safari mask-icon link
                 color: true,
-                // itemProp, itemScope, itemType are for Microdata support. See
-                // http://schema.org/docs/gs.html
                 itemProp: true,
                 itemScope: true,
                 itemType: true,
-                // itemID and itemRef are for Microdata support as well but only specified in
-                // the WHATWG spec document. See
-                // https://html.spec.whatwg.org/multipage/microdata.html#microdata-dom-api
                 itemID: true,
                 itemRef: true,
-                // results show looking glass icon and recent searches on input search fields in
-                // WebKit/Blink
                 results: true,
-                // IE-only attribute that specifies security restrictions on an iframe as an
-                // alternative to the sandbox attribute on IE<10
                 security: true,
-                // IE-only attribute that controls focus behavior
                 unselectable: true
             },
             DOMPropertyNames = {
@@ -454,12 +423,11 @@ if (!window.sym) {
                                 item.__symElementId = renderedItem.__symElementId;
                             }
 
-                            if (!renderedItem.__symModels) {
-                                renderedItem.__symModels = {};
+                            if (!renderedItem.model) {
+                                renderedItem.model = {};
                             }
                             //assign current model to list-item element
-                            renderedItem.__symModels[elem.loopTemplate.loopModel.name] = itemModel[key];
-                            renderedItem.__symModel = itemModel[key];
+                            renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
                             renderedItem.__symModelKey = key;
 
                             //append list item to element
@@ -494,7 +462,7 @@ if (!window.sym) {
                         var attr = elem.attributes[i],
                             nakedValue = elem.attributes['__naked' + attr.name];
                         if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                            attr.value = findAndReplaceExecResult(elem, nakedValue, elem.__symModels);
+                            attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attr.name.toLowerCase() === 'value') {
                                 elem.value = attr.value;
                             }
@@ -516,7 +484,7 @@ if (!window.sym) {
             else {
                 var nakedValue = elem.parentNode.attributes['__nakedinnervalue'];
                 if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.parentNode.__symModels);
+                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.parentNode.model);
                 }
             }
             createItemList(elem);
@@ -526,13 +494,13 @@ if (!window.sym) {
         var createModelScope = function (elem, force) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 var curChild = elem.childNodes[i];
-                if (elem.__symModels) {
-                    if (!curChild.__symModels) {
-                        curChild.__symModels = {};
+                if (elem.model) {
+                    if (!curChild.model) {
+                        curChild.model = {};
                     }
-                    for (var key in elem.__symModels) {
-                        if (!curChild.__symModels.hasOwnProperty(key) || (force === true)) {
-                            curChild.__symModels[key] = elem.__symModels[key];
+                    for (var key in elem.model) {
+                        if (!curChild.model.hasOwnProperty(key) || (force === true)) {
+                            curChild.model[key] = elem.model[key];
                         }
                     }
                 }
@@ -552,7 +520,7 @@ if (!window.sym) {
             //addEventListeners(elem, elem.symEvents);
 
             if (elem.tagName === 'SELECT') {
-                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue, elem.__symModels);
+                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue, elem.model);
             }
         }
 
@@ -576,10 +544,10 @@ if (!window.sym) {
                 },
                 updateModel: function (modelName, model) {
                     if (model) {
-                        if (!elem.__symModels) {
-                            elem.__symModels = {};
+                        if (!elem.model) {
+                            elem.model = {};
                         }
-                        elem.__symModels[modelName] = model;
+                        elem.model[modelName] = model;
                         createModelScope(elem, true);
                     }
                 }
@@ -596,14 +564,13 @@ if (!window.sym) {
 
                 if (typeof attrs === 'object') {
 
-                    if (attrs.models && typeof attrs.models === 'object') {
-                        if (!elem.__symModels) {
-                            elem.__symModels = attrs.models;
+                    if (attrs.model && typeof attrs.model === 'object') {
+                        if (!elem.model) {
+                            elem.model = attrs.model;
                         }
-                    } else if (!elem.__symModels) {
-                        elem.__symModels = {};
+                    } else if (!elem.model) {
+                        elem.model = {};
                     }
-
 
                     if (attrs.loopTemplate && !elem.loopTemplate) {
                         elem.loopTemplate = attrs.loopTemplate;
