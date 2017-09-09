@@ -151,7 +151,7 @@ if (!window.sym) {
                 text: true,
                 tspan: true
             },
-            allowedProperties = { 
+            allowedProperties = {
                 accept: true,
                 acceptCharset: true,
                 accessKey: true,
@@ -450,10 +450,23 @@ if (!window.sym) {
             }
         }
 
+        var defineEmptySetter = function (currentObject, propKey) {
+            var storedValue = currentObject[propKey];
+            Object.defineProperty(currentObject, propKey,
+                {
+                    get: function () { return storedValue },
+                    set: function (val) {
+                        console.log('OMG! OMG! We are hacked. You need to try other tricks, bad boy :)');
+                    }
+                }
+            )
+        }
+
         //renders element's attributes and inner text
         var renderAttributesAndText = function (elem) {
             if (elem.nodeType == Node.TEXT_NODE && !elem.parentNode.attributes['__nakedinnervalue']) {
                 elem.parentNode.attributes['__nakedinnervalue'] = elem.nodeValue;
+                defineEmptySetter(elem.parentNode.attributes, '__nakedinnervalue');
             }
 
             if (elem instanceof Node && elem.nodeType != Node.TEXT_NODE) {
@@ -584,6 +597,7 @@ if (!window.sym) {
                             var validPropName = DOMPropertyNames[key] ? DOMPropertyNames[key] : key;
                             elem.setAttribute(validPropName, attrs[key]);
                             elem.attributes['__naked' + validPropName] = attrs[key];
+                            defineEmptySetter(elem.attributes, '__naked' + validPropName);
                         }
                         else if (key === 'events') {
                             elem.symEvents = attrs[key];
@@ -603,6 +617,7 @@ if (!window.sym) {
                         var newElem = htmlFromString(childList[i]);
                         elem.appendChild(newElem);
                         elem.attributes['__nakedinnervalue'] = childList[i];
+                        defineEmptySetter(elem.attributes, '__nakedinnervalue');
                     }
                 }
             }
