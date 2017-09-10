@@ -310,6 +310,15 @@ if (!window.sym) {
         var modelReg = /[{]([a-zA-z.:'"?!\s=|&+\-*\/$]*)[}]/g, // /\{([!])*\s*([a-zA-Z_$][a-zA-Z_0-9]*|([a-zA-Z_$][a-zA-Z_0-9]*[.])+([a-zA-Z_$][a-zA-Z_0-9]*)+)\s*\}/gi,
             execResult;
 
+        //check if value is primitive
+        function isPrimitive(value) {
+            return (
+                typeof value === 'string' ||
+                typeof value === 'number' ||
+                typeof value === 'boolean'
+            )
+        }
+
         //it will be used to generate id for elements which has no id
         var generateId = function () {
             return idPrefix + idCounter++;
@@ -375,7 +384,7 @@ if (!window.sym) {
                     oldChild = oldElem.childNodes[i];
                 deepCopyCustomAttributesAndEvents(newChild, oldChild);
             }
-            if (newElem && oldElem) {
+            if (newElem && oldElem && newElem.nodeType !== Node.TEXT_NODE) {
                 if (oldElem.loopTemplate && !newElem.loopTemplate) {
                     newElem.loopTemplate = oldElem.loopTemplate;
                 }
@@ -383,11 +392,12 @@ if (!window.sym) {
                     newElem.loopModel = oldElem.loopModel;
                 }
                 addEventListeners(newElem, oldElem.symEvents);
-            }
-            for (var key in oldElem.attributes) {
-                if (oldElem.attributes.hasOwnProperty(key) && !(oldElem.attributes[key] instanceof Attr)) {
-                    newElem.attributes[key] = oldElem.attributes[key];
-                }
+                for (var key in oldElem.attributes) {
+                    if (oldElem.attributes.hasOwnProperty(key) && !(oldElem.attributes[key] instanceof Attr)) {
+                        newElem.attributes[key] = oldElem.attributes[key];
+                    }
+                };
+                newElem.__symElementId = generateId();
             }
         }
 
@@ -399,39 +409,54 @@ if (!window.sym) {
 
                     //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
                     for (var i = 0; i < elem.childNodes.length; i++) {
-                        var elemId = (elem.childNodes[i].nodeType !== Node.TEXT_NODE) ? elem.childNodes[i].__symElementId : elem.__symChildElementId;
-                        oldRenderedList[elemId] = elem.childNodes[i];
+                        if (elem.childNodes[i].nodeType !== Node.TEXT_NODE) {
+                            var elemId = elem.childNodes[i].__symElementId;
+                            oldRenderedList[elemId] = elem.childNodes[i];
+                        }
                     }
                     for (var key in itemModel) {
                         //if current itemModel element's type is string, wrap this element by String, 
                         //because we need to keep __symElementId value in its attribute.
-                        var item = itemModel[key];
-
-                        //if this condition will be matched then no need to clone and append new element, it already exists 
-                        if (item.__symElementId && oldRenderedList[item.__symElementId]) {
-                            delete oldRenderedList[item.__symElementId];
+                        var curModel = itemModel[key];
+                        if (isPrimitive(curModel)) {
+                            console.warn('Please do not use primitive values as model');
                         }
                         else {
-                            var renderedItem = elem.loopTemplate.cloneNode(true);
-                            deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
-                            //generate new id to keep elements unique
-                            renderedItem.__symElementId = generateId();
-                            if (typeof item === 'string') {
-                                elem.__symChildElementId = renderedItem.__symElementId;
+                            if (!curModel.__symElementIds) {
+                                curModel.__symElementIds = [];
+                            }
+                            var anyPreRenderedFound = [];
+                            if (curModel.__symElementIds) {
+                                anyPreRenderedFound = curModel.__symElementIds.filter(function (id) {
+                                    return oldRenderedList[id];
+                                });
+                            }
+                            //if this condition will be matched then no need to clone and append new element, it already exists 
+                            if (anyPreRenderedFound.length > 0) {
+                                for (var i = 0; i < anyPreRenderedFound.length; i++) {
+                                    var foundedId = anyPreRenderedFound[i];
+                                    delete oldRenderedList[foundedId];
+                                }
                             }
                             else {
-                                item.__symElementId = renderedItem.__symElementId;
-                            }
+                                var renderedItem = elem.loopTemplate.cloneNode(true);
+                                deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
+                                //generate new id to keep elements unique
+                                renderedItem.__symElementId = generateId();
+                                if (typeof item !== 'string') {
+                                    curModel.__symElementIds && curModel.__symElementIds.push(renderedItem.__symElementId);
+                                }
 
-                            if (!renderedItem.model) {
-                                renderedItem.model = {};
-                            }
-                            //assign current model to list-item element
-                            renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
-                            renderedItem.__symModelKey = key;
+                                if (!renderedItem.model) {
+                                    renderedItem.model = {};
+                                }
+                                //assign current model to list-item element
+                                renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
+                                renderedItem.__symModelKey = key;
 
-                            //append list item to element
-                            elem.appendChild(renderedItem);
+                                //append list item to element
+                                elem.appendChild(renderedItem);
+                            }
                         }
                     }
 
