@@ -307,7 +307,7 @@ if (!window.sym) {
             idCounter = 0;
 
         //model detection regexp and its execution result definitions
-        var modelReg = /[{]([a-zA-z.:'"?!\s=|&+\-*\/$]*)[}]/g, // /\{([!])*\s*([a-zA-Z_$][a-zA-Z_0-9]*|([a-zA-Z_$][a-zA-Z_0-9]*[.])+([a-zA-Z_$][a-zA-Z_0-9]*)+)\s*\}/gi,
+        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$][0-9a-zA-Z.:\s'"?!=|&+\-*\/\[\]$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g, // /\{([!])*\s*([a-zA-Z_$][a-zA-Z_0-9]*|([a-zA-Z_$][a-zA-Z_0-9]*[.])+([a-zA-Z_$][a-zA-Z_0-9]*)+)\s*\}/gi,
             execResult;
 
         //check if value is primitive
