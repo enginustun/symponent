@@ -319,7 +319,17 @@ if (!window.sym) {
             )
         }
 
-        function isTextNode(node){
+        //checks if object is array or json object. can it be iterated with forin loop?
+        var isIterable = function (obj) {
+            if (obj) {
+                var propType = Object.prototype.toString.call(obj);
+                return propType === '[object Object]' || propType === '[object Array]';
+            }
+            return false;
+        }
+
+        //checks if passed element is Node and also its type is TEXT_NODE
+        function isTextNode(node) {
             return (node instanceof Node && node.nodeType === Node.TEXT_NODE);
         }
 
@@ -382,6 +392,7 @@ if (!window.sym) {
             return parsedValue;
         }
 
+        //copies self defined attributes, templates, models etc. for cloned elements from template element
         var deepCopyCustomAttributesAndEvents = function (newElem, oldElem) {
             for (var i = 0; i < newElem.childNodes.length; i++) {
                 var newChild = newElem.childNodes[i],
@@ -405,6 +416,7 @@ if (!window.sym) {
             }
         }
 
+        //checks, creates or removes items for repeatable elements. also creates model scope of each loop items.
         var createItemList = function (elem) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list,
@@ -479,6 +491,7 @@ if (!window.sym) {
             }
         }
 
+        //defines empty setter to properties which will be evaluated on rendering phase to avoid XSS attack and external interventions.
         var defineEmptySetter = function (currentObject, propKey) {
             var storedValue = currentObject[propKey];
             Object.defineProperty(currentObject, propKey,
@@ -532,6 +545,68 @@ if (!window.sym) {
             createItemList(elem);
         }
 
+        //shows to get/set definitions of model are done
+        var defineGSSetTrue = function (model) {
+            if (!model.hasOwnProperty('__isGSSet')) {
+                Object.defineProperty(model, '__isGSSet', {
+                    enumerable: false,
+                    value: true
+                });
+            }
+        }
+
+        //recursive helper function of defineGettersAndSetters, actually all work is done here 
+        var defineGettersAndSettersHelper = function (model, elem) {
+            if (isIterable(model) && !model.__isGSSet) {
+                for (var propName in model) {
+                    // IIFE
+                    (function (propName) {
+                        if (model.hasOwnProperty(propName)) {
+                            var modelProp = model[propName];
+                            if (isIterable(modelProp)) {
+                                defineGettersAndSettersHelper(modelProp, elem);
+                            }
+                            else if (isPrimitive(modelProp)) {
+                                Object.defineProperty(model, '__sym' + propName, {
+                                    enumerable: false,
+                                    value: modelProp,
+                                    writable: true
+                                });
+                                Object.defineProperty(model, propName,
+                                    {
+                                        get: function () { return model['__sym' + propName] },
+                                        set: function (val) {
+                                            model['__sym' + propName] = val;
+
+                                            //log will be deleted
+                                            console.log('changed >>>>>>>>>>>> ', model, propName, val);
+
+                                            //TO DO: if any property of model changes, we can catch here,
+                                            //DOM elements related with models need to be stored.
+                                            //so this way, we can only update required parts.
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    }(propName));
+                }
+                defineGSSetTrue(model);
+            }
+        }
+
+        //defines get and set functions of each property of element's models
+        var defineGettersAndSetters = function (elem) {
+            if (!isTextNode(elem) && isIterable(elem.model)) {
+                for (var propName in elem.model) {
+                    if (elem.model.hasOwnProperty(propName)) {
+                        var modelProp = elem.model[propName];
+                        defineGettersAndSettersHelper(modelProp, elem);
+                    }
+                }
+            }
+        }
+
         //creates deeply model scope for element and its children
         var createModelScope = function (elem, force) {
             for (var i = 0; i < elem.childNodes.length; i++) {
@@ -551,6 +626,7 @@ if (!window.sym) {
                 }
                 createModelScope(curChild, force);
             }
+            defineGettersAndSetters(elem);
         }
 
         //this method will be used to refresh component
@@ -657,6 +733,7 @@ if (!window.sym) {
             return elem;
         }
 
+        //creates loop model with passed list. it will be used to create repeated list as loopModel.
         self.createLoopModel = function (name, list) {
             return { name: name, list: list };
         }
