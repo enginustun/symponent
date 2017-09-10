@@ -319,6 +319,10 @@ if (!window.sym) {
             )
         }
 
+        function isTextNode(node){
+            return (node instanceof Node && node.nodeType === Node.TEXT_NODE);
+        }
+
         //it will be used to generate id for elements which has no id
         var generateId = function () {
             return idPrefix + idCounter++;
@@ -384,7 +388,7 @@ if (!window.sym) {
                     oldChild = oldElem.childNodes[i];
                 deepCopyCustomAttributesAndEvents(newChild, oldChild);
             }
-            if (newElem && oldElem && newElem.nodeType !== Node.TEXT_NODE) {
+            if (newElem && oldElem && !isTextNode(newElem)) {
                 if (oldElem.loopTemplate && !newElem.loopTemplate) {
                     newElem.loopTemplate = oldElem.loopTemplate;
                 }
@@ -409,7 +413,7 @@ if (!window.sym) {
 
                     //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
                     for (var i = 0; i < elem.childNodes.length; i++) {
-                        if (elem.childNodes[i].nodeType !== Node.TEXT_NODE) {
+                        if (!isTextNode(elem.childNodes[i])) {
                             var elemId = elem.childNodes[i].__symElementId;
                             oldRenderedList[elemId] = elem.childNodes[i];
                         }
@@ -489,12 +493,12 @@ if (!window.sym) {
 
         //renders element's attributes and inner text
         var renderAttributesAndText = function (elem) {
-            if (elem.nodeType == Node.TEXT_NODE && !elem.parentNode.attributes['__nakedinnervalue']) {
+            if (isTextNode(elem) && !elem.parentNode.attributes['__nakedinnervalue']) {
                 elem.parentNode.attributes['__nakedinnervalue'] = elem.nodeValue;
                 defineEmptySetter(elem.parentNode.attributes, '__nakedinnervalue');
             }
 
-            if (elem instanceof Node && elem.nodeType != Node.TEXT_NODE) {
+            if (!isTextNode(elem)) {
                 if (elem.attributes) {
                     for (var i = 0; i < elem.attributes.length; i++) {
                         var attr = elem.attributes[i],
