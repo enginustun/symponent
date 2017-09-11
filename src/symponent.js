@@ -522,7 +522,7 @@ if (!window.sym) {
                                 elem.value = attr.value;
                             }
                         }
-                        if (attr.name === 'checked' && !(attr.value === 'true')) {
+                        if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
                             elem.removeAttribute(attr.name);
                         }
                     }
