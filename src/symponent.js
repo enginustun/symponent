@@ -543,12 +543,14 @@ if (!window.sym) {
                 }
             }
             createItemList(elem);
+            
+            defineGettersAndSetters(elem);
         }
 
         //shows to get/set definitions of model are done
-        var defineGSSetTrue = function (model) {
-            if (!model.hasOwnProperty('__isGSSet')) {
-                Object.defineProperty(model, '__isGSSet', {
+        var defineRenderedTrue = function (model) {
+            if (!model.hasOwnProperty('__isRendered')) {
+                Object.defineProperty(model, '__isRendered', {
                     enumerable: false,
                     value: true
                 });
@@ -557,7 +559,7 @@ if (!window.sym) {
 
         //recursive helper function of defineGettersAndSetters, actually all work is done here 
         var defineGettersAndSettersHelper = function (model, elem) {
-            if (isIterable(model) && !model.__isGSSet) {
+            if (isIterable(model) && !model.__isRendered) {
                 for (var propName in model) {
                     // IIFE
                     (function (propName) {
@@ -591,7 +593,7 @@ if (!window.sym) {
                         }
                     }(propName));
                 }
-                defineGSSetTrue(model);
+                defineRenderedTrue(model);
             }
         }
 
@@ -626,7 +628,6 @@ if (!window.sym) {
                 }
                 createModelScope(curChild, force);
             }
-            defineGettersAndSetters(elem);
         }
 
         //this method will be used to refresh component
