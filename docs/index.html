@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv='Content-type' content='text/html; charset=utf-8'>
+    <title>symponent.js</title>
+    <link rel="stylesheet" href="contents/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="contents/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="contents/dist/css/skins/_all-skins.min.css">
+    <link rel='stylesheet' href='site.css' />
+</head>
+
+<body class="wysihtml5-supported skin-black-light fixed">
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- Logo -->
+            <a href="index.html" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini"><b>s</b>ym</span>
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg"><b>sym</b>ponent</span>
+            </a>
+            <!-- Header Navbar: style can be found in header.less -->
+            <nav class="navbar navbar-static-top">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+            </nav>
+        </header>
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <div class="sidebar" id="scrollspy">
+
+                <!-- sidebar menu: : style can be found in sidebar.less -->
+                <ul class="nav sidebar-menu">
+                    <li class="header">TABLE OF CONTENTS</li>
+                    <li class="active"><a href="#installation"><i class="fa fa-circle-o"></i> Installation</a></li>
+                    <li class=""><a href="#introduction"><i class="fa fa-circle-o"></i> Introduction</a></li>
+                    <li class=""><a href="#dependencies"><i class="fa fa-circle-o"></i> Dependencies</a></li>
+                    <li class=""><a href="#getting-started"><i class="fa fa-circle-o"></i> Getting Started</a></li>
+                    <li class="treeview" id="scrollspy-components">
+                        <a href="javascript:void(0)"><i class="fa fa-circle-o"></i> Components</a>
+                        <ul class="nav treeview-menu">
+                            <li class=""><a href="#component-main-header">Main Header</a></li>
+                            <li class=""><a href="#component-sidebar">Sidebar</a></li>
+                            <li class=""><a href="#component-control-sidebar">Control Sidebar</a></li>
+                            <li class=""><a href="#component-info-box">Info Box</a></li>
+                            <li class=""><a href="#component-box">Boxes</a></li>
+                            <li class=""><a href="#component-direct-chat">Direct Chat</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#license"><i class="fa fa-circle-o"></i> License</a></li>
+                </ul>
+            </div>
+            <!-- /.sidebar -->
+        </aside>
+
+        <div class="content-wrapper" style="min-height: 916px;">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    Symponent
+                    <small>Documentation <strong>v1.0</strong> </small>
+                </h1>
+            </section>
+
+            <!-- Main content -->
+            <div class="content body">
+                <!-- Small boxes (Stat box) -->
+                <div class="row">
+                    <div class="col-xs-12">
+                        This is a JavaScript UI library that allows you to create reactive UIs with a very small learning curve. <br/>                        Symponent does not use virtual DOM nor two-way data binding. <br/> It aims to render only related
+                        elements if it is necessary.
+                    </div>
+                </div>
+                <section id="installation">
+                    <h2>
+                        Installation
+                    </h2>
+                    <p>
+                        Firstly, you can download latest relase from <a href="#">here</a>, and you can see older versions
+                        from <a href="#">here</a>.
+                        <br/> And then include script tag you downloaded to your html page.
+                        <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
+                    </p>
+                    <h4>Compatibilities</h4>
+                    <p>Symponent supports IE9 and above, because it uses ECMAScript 5 features.</p>
+                </section>
+                <section>
+                    <div class="callout callout-info">
+                        <h4>Notice</h4>
+                        <p>Other sections will be added as soon as possible.</p>
+                    </div>
+                </section>
+                <section id="license">
+                    <h2>License</h2>
+                    <p>
+                        Symponent is licensed under the <a href="https://opensource.org/licenses/MIT">MIT</a> license.
+                    </p>
+                    <p>
+                        Copyright (c) 2017-present, Engin Üstün
+                    </p>
+                </section>
+            </div>
+            <!-- /.content -->
+        </div>
+    </div>
+
+
+    <script src="contents/plugins/jQuery/jquery-2.2.3.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="contents/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+
+    <script src="contents/bootstrap/js/bootstrap.min.js"></script>
+    <script src="contents/dist/js/app.min.js"></script>
+    <script src="js/symponent.js"></script>
+    <script src="js/index.js"></script>
+</body>
+
+</html>
