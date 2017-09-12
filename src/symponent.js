@@ -440,7 +440,11 @@ if (!window.sym) {
                         }
                         else {
                             if (!curModel.__symElementIds) {
-                                curModel.__symElementIds = [];
+                                Object.defineProperty(curModel, '__symElementIds', {
+                                    enumerable: false,
+                                    value: [],
+                                    writable: true
+                                });
                             }
                             var anyPreRenderedFound = [];
                             if (curModel.__symElementIds) {
