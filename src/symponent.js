@@ -307,7 +307,8 @@ if (!window.sym) {
             idCounter = 0;
 
         //model detection regexp and its execution result definitions
-        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$][0-9a-zA-Z.:\s'"?!=|&+\-*\/\[\]$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g, // /\{([!])*\s*([a-zA-Z_$][a-zA-Z_0-9]*|([a-zA-Z_$][a-zA-Z_0-9]*[.])+([a-zA-Z_$][a-zA-Z_0-9]*)+)\s*\}/gi,
+        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$][0-9a-zA-Z.:\s'"?!=|&+\-*\/\[\]$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g,
+            weedOutReg = /[a-zA-Z_$][0-9a-zA-Z_$]*([.][a-zA-Z_$][0-9a-zA-Z_$]*)+/g,
             execResult;
 
         //check if value is primitive
@@ -504,6 +505,35 @@ if (!window.sym) {
             )
         }
 
+        //binds elements and models
+        var setBindedElements = function (nakedValue, elem, type, attrName) {
+            while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
+                var propertyName = execResult[1],
+                    modelName = execResult[0].replace(propertyName, '');
+                propertyName = propertyName.substr(1);
+                var model = eval('elem.model.' + modelName);
+
+                //define binded elements' container object
+                if (!model.hasOwnProperty('__symBinded')) {
+                    Object.defineProperty(model, '__symBinded', {
+                        enumerable: false,
+                        value: {},
+                        writable: true
+                    });
+                }
+
+                if (!model.__symBinded[propertyName]) {
+                    model.__symBinded[propertyName] = {};
+                }
+                var ourElem = isTextNode(elem) ? elem.parentNode : elem;
+                model.__symBinded[propertyName][ourElem.__symElementId] = {
+                    elem: ourElem,
+                    type: type,
+                    attrName: attrName
+                };
+            }
+        }
+
         //renders element's attributes and inner text
         var renderAttributesAndText = function (elem) {
             if (isTextNode(elem) && !elem.parentNode.attributes['__nakedinnervalue']) {
@@ -517,6 +547,7 @@ if (!window.sym) {
                         var attr = elem.attributes[i],
                             nakedValue = elem.attributes['__naked' + attr.name];
                         if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                            setBindedElements(nakedValue, elem, 'attributes', attr.name);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attr.name.toLowerCase() === 'value') {
                                 elem.value = attr.value;
@@ -539,11 +570,12 @@ if (!window.sym) {
             else {
                 var nakedValue = elem.parentNode.attributes['__nakedinnervalue'];
                 if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                    setBindedElements(nakedValue, elem, 'innerValue');
                     elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.parentNode.model);
                 }
             }
             createItemList(elem);
-            
+
             defineGettersAndSetters(elem);
         }
 
@@ -554,6 +586,49 @@ if (!window.sym) {
                     enumerable: false,
                     value: true
                 });
+            }
+        }
+
+        //single render element on model change
+        var renderAttributeOrText = function (elem, type, attrName) {
+            if (!isTextNode(elem) && type === 'attributes') {
+                if (elem.attributes) {
+                    if (attrName === 'checked') {
+                        elem.setAttribute(attrName, true);
+                    }
+                    var attr = elem.attributes[attrName],
+                        nakedValue = elem.attributes['__naked' + attrName];
+                    if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                        attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
+                        if (attr.name.toLowerCase() === 'value') {
+                            elem.value = attr.value;
+                        }
+                    }
+                    if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
+                        elem.removeAttribute(attr.name);
+                    }
+                    if (attrName === 'render') {
+                        if (elem.attributes.render.value !== 'true') {
+                            elem.style.display = 'none';
+                        }
+                        else {
+                            elem.style.display = 'initial';
+                        }
+                    }
+                }
+            }
+            else {
+                var nakedValue = elem.attributes['__nakedinnervalue'];
+                if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                    for (var childNodeKey in elem.childNodes) {
+                        if (elem.childNodes.hasOwnProperty(childNodeKey)) {
+                            var childNode = elem.childNodes[childNodeKey];
+                            if (isTextNode(childNode)) {
+                                childNode.nodeValue = findAndReplaceExecResult(childNode, nakedValue, elem.model);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -580,12 +655,14 @@ if (!window.sym) {
                                         set: function (val) {
                                             model['__sym' + propName] = val;
 
-                                            //log will be deleted
-                                            console.log('changed >>>>>>>>>>>> ', model, propName, val);
-
-                                            //TO DO: if any property of model changes, we can catch here,
-                                            //DOM elements related with models need to be stored.
-                                            //so this way, we can only update required parts.
+                                            if (isIterable(model.__symBinded[propName])) {
+                                                for (var elemId in model.__symBinded[propName]) {
+                                                    if (model.__symBinded[propName].hasOwnProperty(elemId)) {
+                                                        var elementProps = model.__symBinded[propName][elemId];
+                                                        renderAttributeOrText(elementProps.elem, elementProps.type, elementProps.attrName);
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 );
