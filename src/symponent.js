@@ -527,11 +527,19 @@ if (!window.sym) {
                     model.__symBinded[propertyName] = {};
                 }
                 var ourElem = isTextNode(elem) ? elem.parentNode : elem;
-                model.__symBinded[propertyName][ourElem.__symElementId] = {
-                    elem: ourElem,
-                    type: type,
-                    attrName: attrName
-                };
+                if (!model.__symBinded[propertyName][ourElem.__symElementId]) {
+                    model.__symBinded[propertyName][ourElem.__symElementId] = {
+                        elem: ourElem,
+                        type: type
+                    };
+                }
+                var elementProps = model.__symBinded[propertyName][ourElem.__symElementId];
+                if (!elementProps.attributes) {
+                    elementProps.attributes = [];
+                }
+                if (!~elementProps.attributes.indexOf(attrName)) {
+                    elementProps.attributes.push(attrName);
+                }
             }
         }
 
@@ -544,6 +552,7 @@ if (!window.sym) {
 
             if (!isTextNode(elem)) {
                 if (elem.attributes) {
+                    var removeChecked = false;
                     for (var i = 0; i < elem.attributes.length; i++) {
                         var attr = elem.attributes[i],
                             nakedValue = elem.attributes['__naked' + attr.name];
@@ -555,8 +564,11 @@ if (!window.sym) {
                             }
                         }
                         if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
-                            elem.removeAttribute(attr.name);
+                            removeChecked = true;
                         }
+                    }
+                    if (removeChecked) {
+                        elem.removeAttribute('checked');
                     }
                     if ('render' in elem.attributes) {
                         if (elem.attributes.render.value !== 'true') {
@@ -591,29 +603,32 @@ if (!window.sym) {
         }
 
         //single render element on model change
-        var renderAttributeOrText = function (elem, type, attrName) {
+        var renderAttributeOrText = function (elem, type, attributes) {
             if (!isTextNode(elem) && type === 'attributes') {
                 if (elem.attributes) {
-                    if (attrName === 'checked') {
-                        elem.setAttribute(attrName, true);
-                    }
-                    var attr = elem.attributes[attrName],
-                        nakedValue = elem.attributes['__naked' + attrName];
-                    if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                        attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
-                        if (attr.name.toLowerCase() === 'value') {
-                            elem.value = attr.value;
+                    for (var i = 0; i < attributes.length; i++) {
+                        var attrName = attributes[i];
+                        if (attrName === 'checked') {
+                            elem.setAttribute('checked', 'checked');
                         }
-                    }
-                    if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
-                        elem.removeAttribute(attr.name);
-                    }
-                    if (attrName === 'render') {
-                        if (elem.attributes.render.value !== 'true') {
-                            elem.style.display = 'none';
+                        var attr = elem.attributes[attrName],
+                            nakedValue = elem.attributes['__naked' + attrName];
+                        if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                            attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
+                            if (attr.name.toLowerCase() === 'value') {
+                                elem.value = attr.value;
+                            }
                         }
-                        else {
-                            elem.style.display = 'initial';
+                        if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
+                            elem.removeAttribute(attr.name);
+                        }
+                        if (attrName === 'render') {
+                            if (elem.attributes.render.value !== 'true') {
+                                elem.style.display = 'none';
+                            }
+                            else {
+                                elem.style.display = 'initial';
+                            }
                         }
                     }
                 }
@@ -660,7 +675,7 @@ if (!window.sym) {
                                                 for (var elemId in model.__symBinded[propName]) {
                                                     if (model.__symBinded[propName].hasOwnProperty(elemId)) {
                                                         var elementProps = model.__symBinded[propName][elemId];
-                                                        renderAttributeOrText(elementProps.elem, elementProps.type, elementProps.attrName);
+                                                        renderAttributeOrText(elementProps.elem, elementProps.type, elementProps.attributes);
                                                     }
                                                 }
                                             }
