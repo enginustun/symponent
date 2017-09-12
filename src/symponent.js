@@ -507,11 +507,12 @@ if (!window.sym) {
 
         //binds elements and models
         var setBindedElements = function (nakedValue, elem, type, attrName) {
+            var modelObj = isTextNode(elem) ? elem.parentNode.model : elem.model;
             while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
                 var propertyName = execResult[1],
                     modelName = execResult[0].replace(propertyName, '');
                 propertyName = propertyName.substr(1);
-                var model = eval('elem.model.' + modelName);
+                var model = eval('modelObj.' + modelName);
 
                 //define binded elements' container object
                 if (!model.hasOwnProperty('__symBinded')) {
