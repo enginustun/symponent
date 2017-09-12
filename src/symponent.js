@@ -510,7 +510,7 @@ if (!window.sym) {
         }
 
         //binds elements and models
-        var setBindedElements = function (nakedValue, elem, type, attrName) {
+        var setBindedElements = function (nakedValue, elem, attrName) {
             var modelObj = isTextNode(elem) ? elem.parentNode.model : elem.model;
             while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
                 var propertyName = execResult[1],
@@ -533,15 +533,14 @@ if (!window.sym) {
                 var ourElem = isTextNode(elem) ? elem.parentNode : elem;
                 if (!model.__symBinded[propertyName][ourElem.__symElementId]) {
                     model.__symBinded[propertyName][ourElem.__symElementId] = {
-                        elem: ourElem,
-                        type: type
+                        elem: ourElem
                     };
                 }
                 var elementProps = model.__symBinded[propertyName][ourElem.__symElementId];
                 if (!elementProps.attributes) {
                     elementProps.attributes = [];
                 }
-                if (!~elementProps.attributes.indexOf(attrName)) {
+                if (attrName && !~elementProps.attributes.indexOf(attrName)) {
                     elementProps.attributes.push(attrName);
                 }
             }
@@ -559,16 +558,22 @@ if (!window.sym) {
                     var removeChecked = false;
                     for (var i = 0; i < elem.attributes.length; i++) {
                         var attr = elem.attributes[i],
-                            nakedValue = elem.attributes['__naked' + attr.name];
+                            attrName = attr.name.toLowerCase(),
+                            nakedValue = elem.attributes['__naked' + attrName];
                         if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                            setBindedElements(nakedValue, elem, 'attributes', attr.name);
+                            setBindedElements(nakedValue, elem, attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
-                            if (attr.name.toLowerCase() === 'value') {
+                            if (attrName === 'value') {
                                 elem.value = attr.value;
                             }
                         }
-                        if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
-                            removeChecked = true;
+                        if (attrName === 'checked') {
+                            if (!(attr.value === 'true')) {
+                                removeChecked = true;
+                            }
+                            else if (attr.value.toLowerCase() === 'true' || attr.value.toLowerCase() === 'checked') {
+                                elem.setAttribute('checked', true);
+                            }
                         }
                     }
                     if (removeChecked) {
@@ -587,7 +592,7 @@ if (!window.sym) {
             else {
                 var nakedValue = elem.parentNode.attributes['__nakedinnervalue'];
                 if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                    setBindedElements(nakedValue, elem, 'innerValue');
+                    setBindedElements(nakedValue, elem, 'innervalue');
                     elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.parentNode.model);
                 }
             }
@@ -607,44 +612,46 @@ if (!window.sym) {
         }
 
         //single render element on model change
-        var renderAttributeOrText = function (elem, type, attributes) {
-            if (!isTextNode(elem) && type === 'attributes') {
+        var renderAttributeOrText = function (elem, attributes) {
+            if (!isTextNode(elem)) {
                 if (elem.attributes) {
                     for (var i = 0; i < attributes.length; i++) {
                         var attrName = attributes[i];
-                        if (attrName === 'checked') {
-                            elem.setAttribute('checked', 'checked');
-                        }
-                        var attr = elem.attributes[attrName],
-                            nakedValue = elem.attributes['__naked' + attrName];
-                        if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                            attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
-                            if (attr.name.toLowerCase() === 'value') {
-                                elem.value = attr.value;
+                        if (attrName === 'innervalue') {
+                            var nakedValue = elem.attributes['__nakedinnervalue'];
+                            if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                                for (var childNodeKey in elem.childNodes) {
+                                    if (elem.childNodes.hasOwnProperty(childNodeKey)) {
+                                        var childNode = elem.childNodes[childNodeKey];
+                                        if (isTextNode(childNode)) {
+                                            childNode.nodeValue = findAndReplaceExecResult(childNode, nakedValue, elem.model);
+                                        }
+                                    }
+                                }
                             }
                         }
-                        if (attr.name.toLowerCase() === 'checked' && !(attr.value === 'true')) {
-                            elem.removeAttribute(attr.name);
-                        }
-                        if (attrName === 'render') {
-                            if (elem.attributes.render.value !== 'true') {
-                                elem.style.display = 'none';
+                        else {
+                            if (attrName === 'checked') {
+                                elem.setAttribute('checked', true);
                             }
-                            else {
-                                elem.style.display = 'initial';
+                            var attr = elem.attributes[attrName],
+                                nakedValue = elem.attributes['__naked' + attrName];
+                            if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                                attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
+                                if (attrName === 'value') {
+                                    elem.value = attr.value;
+                                }
                             }
-                        }
-                    }
-                }
-            }
-            else {
-                var nakedValue = elem.attributes['__nakedinnervalue'];
-                if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                    for (var childNodeKey in elem.childNodes) {
-                        if (elem.childNodes.hasOwnProperty(childNodeKey)) {
-                            var childNode = elem.childNodes[childNodeKey];
-                            if (isTextNode(childNode)) {
-                                childNode.nodeValue = findAndReplaceExecResult(childNode, nakedValue, elem.model);
+                            if (attrName === 'checked' && !(attr.value === 'true')) {
+                                elem.removeAttribute(attrName);
+                            }
+                            if (attrName === 'render') {
+                                if (elem.attributes.render.value !== 'true') {
+                                    elem.style.display = 'none';
+                                }
+                                else {
+                                    elem.style.display = 'initial';
+                                }
                             }
                         }
                     }
@@ -679,7 +686,7 @@ if (!window.sym) {
                                                 for (var elemId in model.__symBinded[propName]) {
                                                     if (model.__symBinded[propName].hasOwnProperty(elemId)) {
                                                         var elementProps = model.__symBinded[propName][elemId];
-                                                        renderAttributeOrText(elementProps.elem, elementProps.type, elementProps.attributes);
+                                                        renderAttributeOrText(elementProps.elem, elementProps.attributes);
                                                     }
                                                 }
                                             }
