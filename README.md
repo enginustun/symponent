@@ -12,7 +12,7 @@ Basically insert script tag your html page.
 
 ## Documentation
 
-To do
+See [muendiz.github.io/symponent](https://muendiz.github.io/symponent/).
 
 ## License
 
