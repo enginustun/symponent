@@ -2,19 +2,34 @@
 <html>
 
 <head>
-    <meta http-equiv='Content-type' content='text/html; charset=utf-8'>
-    <title>symponent.js</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>symponent | Documentation</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.6 -->
     <link rel="stylesheet" href="contents/bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+    <!-- Ionicons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Theme style -->
     <link rel="stylesheet" href="contents/dist/css/AdminLTE.min.css">
     <link rel="stylesheet" href="contents/dist/css/skins/all-skins.min.css">
-    <link rel='stylesheet' href='site.css' />
+    <link rel="stylesheet" href="style.css">
+    <script src="js/symponent.js"></script>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
 </head>
 
-<body class="wysihtml5-supported skin-black-light fixed">
+<body class="skin-black fixed" data-spy="scroll" data-target="#scrollspy">
     <div class="wrapper">
+
         <header class="main-header">
+            <!-- Logo -->
             <!-- Logo -->
             <a href="index.html" class="logo">
                 <!-- mini logo for sidebar mini 50x50 pixels -->
@@ -23,13 +38,14 @@
                 <span class="logo-lg"><b>sym</b>ponent</span>
             </a>
             <!-- Header Navbar: style can be found in header.less -->
-            <nav class="navbar navbar-static-top">
+            <nav class="navbar navbar-static-top" role="navigation">
                 <!-- Sidebar toggle button-->
                 <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
                     <span class="sr-only">Toggle navigation</span>
                 </a>
             </nav>
         </header>
+        <!-- Left side column. contains the logo and sidebar -->
         <aside class="main-sidebar">
             <!-- sidebar: style can be found in sidebar.less -->
             <div class="sidebar" id="scrollspy">
@@ -37,64 +53,221 @@
                 <!-- sidebar menu: : style can be found in sidebar.less -->
                 <ul class="nav sidebar-menu">
                     <li class="header">TABLE OF CONTENTS</li>
-                    <li class="active"><a href="#installation"><i class="fa fa-circle-o"></i> Installation</a></li>
-                    <li class=""><a href="#introduction"><i class="fa fa-circle-o"></i> Introduction</a></li>
-                    <li class=""><a href="#dependencies"><i class="fa fa-circle-o"></i> Dependencies</a></li>
-                    <li class=""><a href="#getting-started"><i class="fa fa-circle-o"></i> Getting Started</a></li>
-                    <li class="treeview" id="scrollspy-components">
-                        <a href="javascript:void(0)"><i class="fa fa-circle-o"></i> Components</a>
+                    <li class="active"><a href="#introduction"><i class="fa fa-circle-o"></i> Introduction</a></li>
+                    <li><a href="#download"><i class="fa fa-circle-o"></i> Download</a></li>
+                    <li><a href="#compatibilities"><i class="fa fa-circle-o"></i> Compatibilities</a></li>
+                    <li><a href="#advice"><i class="fa fa-circle-o"></i> Prerequisites</a></li>
+                    <li class="treeview" id="scrollspy-usage">
+                        <!-- <a href="#getting-started"><i class="fa fa-circle-o"></i> Getting Started</a> -->
+                        <a href="javascript:void(0)"><i class="fa fa-circle-o"></i> Usage</a>
                         <ul class="nav treeview-menu">
-                            <li class=""><a href="#component-main-header">Main Header</a></li>
-                            <li class=""><a href="#component-sidebar">Sidebar</a></li>
-                            <li class=""><a href="#component-control-sidebar">Control Sidebar</a></li>
-                            <li class=""><a href="#component-info-box">Info Box</a></li>
-                            <li class=""><a href="#component-box">Boxes</a></li>
-                            <li class=""><a href="#component-direct-chat">Direct Chat</a></li>
+                            <li><a href="#usage-getting-started">Getting Started</a></li>
+                            <li><a href="#usage-create-first-sym">Create First Component</a></li>
+                            <li><a href="#usage-template-syntax">Template Syntax</a></li>
                         </ul>
                     </li>
+
                     <li><a href="#license"><i class="fa fa-circle-o"></i> License</a></li>
                 </ul>
             </div>
             <!-- /.sidebar -->
         </aside>
 
-        <div class="content-wrapper" style="min-height: 916px;">
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
             <!-- Content Header (Page header) -->
-            <section class="content-header">
+            <div class="content-header">
                 <h1>
-                    Symponent
-                    <small>Documentation <strong>v1.0</strong> </small>
+                    symponent Documentation
+                    <small>Version 1.0</small>
                 </h1>
-            </section>
+            </div>
 
             <!-- Main content -->
             <div class="content body">
-                <!-- Small boxes (Stat box) -->
-                <div class="row">
-                    <div class="col-xs-12">
-                        This is a JavaScript UI library that allows you to create reactive UIs with a very small learning curve. <br/>                        Symponent does not use virtual DOM nor two-way data binding. <br/> It aims to render only related
-                        elements if it is necessary.
-                    </div>
-                </div>
-                <section id="installation">
-                    <h2>
-                        Installation
-                    </h2>
-                    <p>
-                        Firstly, you can download latest relase from <a href="#">here</a>, and you can see older versions
-                        from <a href="#">here</a>.
-                        <br/> And then include script tag you downloaded to your html page.
-                        <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
-                    </p>
-                    <h4>Compatibilities</h4>
-                    <p>Symponent supports IE9 and above, because it uses ECMAScript 5 features.</p>
-                </section>
+
                 <section>
-                    <div class="callout callout-info">
-                        <h4>Notice</h4>
-                        <p>Other sections will be added as soon as possible.</p>
-                    </div>
+                    <div class="section-linker" id="introduction"></div>
+                    <h2 class="page-header"><a href="#introduction">Introduction</a></h2>
+                    <p class="lead">
+                        <strong>sym</strong>ponent is a light-weight but very powerful JavaScript UI library that allows
+                        you to create reactive UIs with a very small learning curve. <br/> It aims to render only related
+                        elements if it is necessary.
+                    </p>
                 </section>
+                <div class="clearfix"></div>
+                <!-- /#introduction -->
+
+
+                <!-- ============================================================= -->
+
+                <section>
+                    <div class="section-linker" id="download"></div>
+                    <h2 class="page-header"><a href="#download">Download</a></h2>
+                    <p class="lead">
+                        Download <strong>sym</strong>ponent production release to finish your works as soon as possible or
+                        source code to contribute this awesome library.
+                    </p>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="box box-primary">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Ready</h3>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <p>Get latest release of <strong>sym</strong>ponent.</p>
+                                    <a href="#" class="btn btn-primary"><i class="fa fa-download"></i> Download</a>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                        <!-- /.col -->
+                        <div class="col-sm-6">
+                            <div class="box box-danger">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Source Code</h3>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <p>Fork <strong>sym</strong>ponent on Github to contribute.</p>
+                                    <a href="https://github.com/muendiz/symponent" class="btn btn-danger"><i class="fa fa-github"></i> Github</a>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                    <!-- /.row -->
+                </section>
+                <div class="clearfix"></div>
+                <!-- ============================================================= -->
+
+                <section>
+                    <div class="section-linker" id="compatibilities"></div>
+                    <h2 class="page-header"><a href="#compatibilities">Compatibilities</a></h2>
+                    <p><strong>sym</strong>ponent supports IE9 and above, because it uses ECMAScript 5 features.</p>
+                </section>
+                <div class="clearfix"></div>
+
+
+                <!-- ============================================================= -->
+
+                <section>
+                    <div class="section-linker" id="advice"></div>
+                    <h2 class="page-header"><a href="#advice">Prerequisites</a></h2>
+                    <p class="lead">
+                        This guide assumes intermediate level knowledge of HTML, CSS, and JavaScript. If you think you are not familiar with them,
+                        it might not be a good idea to start learning this library. After experiencing the basics you might
+                        be <strong>sym</strong>ponent master. Prior experience with other frameworks
+                        helps, but is not required.
+                    </p>
+                </section>
+                <div class="clearfix"></div>
+
+
+                <!-- ============================================================= -->
+
+                <section id="usage" data-spy="scroll" data-target="#scrollspy-usage">
+                    <h2 class="page-header"><a href="#usage">Usage</a></h3>
+                        <div class="section-linker" id="usage-getting-started"></div>
+                        <h3 id="usage-getting-started">Getting Started</h3>
+                        <p class="lead">Include script tag you downloaded to your html page.</p>
+                        <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
+
+
+                        <div class="section-linker" id="usage-create-first-sym"></div>
+                        <h3 id="usage-create-first-sym">Create First Component</h3>
+                        <p class="lead">
+                            <strong>sym</strong>ponent supports only JavaScript syntax yet. The smallest symponent example
+                            looks like below:
+                        </p>
+
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#create-first-symtab_1" data-toggle="tab" aria-expanded="true">JavaScript</a></li>
+                                <li class=""><a href="#create-first-symtab_2" data-toggle="tab" aria-expanded="false">HTML</a></li>
+                                <li class=""><a href="#create-first-symtab_3" data-toggle="tab" aria-expanded="false">CSS</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="create-first-symtab_1">
+                                    <pre class="prettyprint"><code class="javascript">sym.createComponent(
+    sym.createElement('div', {}, 'Hello symponent!'),
+    'container-element-id'
+);</code></pre>
+                                </div>
+                                <div class="tab-pane" id="create-first-symtab_2">
+                                    <pre class="prettyprint"><code class="html">&lt;div class=&quot;container-element-id&quot;&gt;&lt;/div&gt;</code></pre>
+                                </div>
+                                <div class="tab-pane" id="create-first-symtab_3">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Result</h3>
+                            </div>
+                            <div class="box-body">
+                                <div id="container"></div>
+                            </div>
+                        </div>
+                        <script>
+                            sym.createComponent(
+                                sym.createElement('div', {}, 'Hello symponent!'),
+                                'container'
+                            );
+                        </script>
+
+
+                        <div class="section-linker" id="usage-template-syntax"></div>
+                        <h3 id="usage-template-syntax">Models and Template Syntax</h3>
+                        <p class="lead"><strong>sym</strong>ponent allows you to use models in elements with curly brackets <code>{modelName.propertyName}</code>.
+                            As you can understand that you should pass <b>model parameter</b> to the element created for
+                            using it in element.</p>
+
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#template-syntaxtab_1" data-toggle="tab" aria-expanded="true">JavaScript</a></li>
+                                <li class=""><a href="#template-syntaxtab_2" data-toggle="tab" aria-expanded="false">HTML</a></li>
+                                <li class=""><a href="#template-syntaxtab_3" data-toggle="tab" aria-expanded="false">CSS</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="template-syntaxtab_1">
+                                    <pre class="prettyprint"><code class="javascript">var userObject = { name: 'John', surname: 'Doe' };
+sym.createComponent(
+    sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!'),
+    'container-element-id'
+);</code></pre>
+                                </div>
+                                <div class="tab-pane" id="template-syntaxtab_2">
+                                    <pre class="prettyprint"><code class="html">&lt;div class=&quot;container-element-id&quot;&gt;&lt;/div&gt;</code></pre>
+                                </div>
+                                <div class="tab-pane" id="template-syntaxtab_3">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Result</h3>
+                            </div>
+                            <div class="box-body">
+                                <div id="container-with-user-model"></div>
+                            </div>
+                        </div>
+                        <script>
+                            var userObject = { name: 'John', surname: 'Doe' };
+                            sym.createComponent(
+                                sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!'),
+                                'container-with-user-model'
+                            );
+                        </script>
+                </section>
+                <div class="clearfix"></div>
+
                 <section id="license">
                     <h2>License</h2>
                     <p>
@@ -104,20 +277,33 @@
                         Copyright (c) 2017-present, Engin Üstün
                     </p>
                 </section>
+
+
             </div>
             <!-- /.content -->
         </div>
+        <!-- /.content-wrapper -->
+
+        <footer class="main-footer">
+            <div class="pull-right hidden-xs">
+                <b>Version</b> 1.0
+            </div>
+            <strong>Copyright © 2017-present <a href="https://github.com/muendiz" target="_blank">Engin Üstün</a>.</strong>            All rights reserved.
+        </footer>
+
     </div>
+    <!-- ./wrapper -->
 
-
+    <!-- jQuery 2.2.3 -->
     <script src="contents/plugins/jQuery/jquery-2.2.3.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    <script src="contents/plugins/slimScroll/jquery.slimscroll.min.js"></script>
-
+    <!-- Bootstrap 3.3.6 -->
     <script src="contents/bootstrap/js/bootstrap.min.js"></script>
+    <!-- AdminLTE App -->
     <script src="contents/dist/js/app.min.js"></script>
-    <script src="js/symponent.js"></script>
-    <script src="js/index.js"></script>
+    <!-- SlimScroll 1.3.0 -->
+    <script src="contents/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+    <script src="docs.js"></script>
 </body>
 
 </html>
