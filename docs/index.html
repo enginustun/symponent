@@ -64,6 +64,7 @@
                             <li><a href="#usage-getting-started">Getting Started</a></li>
                             <li><a href="#usage-create-first-sym">Create First Component</a></li>
                             <li><a href="#usage-template-syntax">Template Syntax</a></li>
+                            <li><a href="#usage-interact">Interactivity</a></li>
                         </ul>
                     </li>
 
@@ -221,7 +222,7 @@
                             );
                         </script>
 
-
+                        <!-- template syntax -->
                         <div class="section-linker" id="usage-template-syntax"></div>
                         <h3 id="usage-template-syntax">Models and Template Syntax</h3>
                         <p class="lead"><strong>sym</strong>ponent allows you to use models in elements with curly brackets <code>{modelName.propertyName}</code>.
@@ -263,6 +264,67 @@ sym.createComponent(
                             sym.createComponent(
                                 sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!'),
                                 'container-with-user-model'
+                            );
+                        </script>
+
+                        <!-- Interactivity -->
+                        <div class="section-linker" id="usage-interact"></div>
+                        <h3 id="usage-interact">Interactivity</h3>
+                        <p class="lead">Interactive user inputs can be defined easily.</p>
+
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#interacttab_1" data-toggle="tab" aria-expanded="true">JavaScript</a></li>
+                                <li class=""><a href="#interacttab_2" data-toggle="tab" aria-expanded="false">HTML</a></li>
+                                <li class=""><a href="#interacttab_3" data-toggle="tab" aria-expanded="false">CSS</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="interacttab_1">
+                                    <pre class="prettyprint"><code class="javascript">var userObject = { name: 'John', surname: 'Doe' };
+
+sym.createComponent(
+    sym.createElement('div', { model: { user: userObject } }, 
+        'Hello {user.name} {user.surname}!',
+        sym.createElement('input', { value: '{user.name}' })
+    ),
+    'container-element-id'
+);</code></pre>
+                                </div>
+                                <div class="tab-pane" id="interacttab_2">
+                                    <pre class="prettyprint"><code class="html">&lt;div class=&quot;container-element-id&quot;&gt;&lt;/div&gt;</code></pre>
+                                </div>
+                                <div class="tab-pane" id="interacttab_3">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Result</h3>
+                            </div>
+                            <div class="box-body">
+                                <div id="container-with-user-input"></div>
+                                <br/>
+                                <div class="box box-solid box-warning">
+                                    <div class="box-header">
+                                        <h3 class="box-title">Warning</h3>
+                                    </div>
+                                    <!-- /.box-header -->
+                                    <div class="box-body">
+                                        Wait what? Why there is no changes when you changed value in input?
+                                    </div>
+                                    <!-- /.box-body -->
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            var userObject = { name: 'John', surname: 'Doe' };
+                            sym.createComponent(
+                                sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!',
+                                    sym.createElement('br'),
+                                    sym.createElement('input', { type: 'text', value: '{user.name}' })
+                                ),
+                                'container-with-user-input'
                             );
                         </script>
                 </section>
