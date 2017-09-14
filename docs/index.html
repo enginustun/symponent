@@ -62,6 +62,7 @@
                         <a href="javascript:void(0)"><i class="fa fa-circle-o"></i> Usage</a>
                         <ul class="nav treeview-menu">
                             <li><a href="#usage-getting-started">Getting Started</a></li>
+                            <li><a href="#usage-how-it-works">How It Works</a></li>
                             <li><a href="#usage-create-first-sym">Create First Component</a></li>
                             <li><a href="#usage-template-syntax">Template Syntax</a></li>
                             <li><a href="#usage-interact">Interactivity</a></li>
@@ -118,7 +119,7 @@
                                 <!-- /.box-header -->
                                 <div class="box-body">
                                     <p>Get latest release of <strong>sym</strong>ponent.</p>
-                                    <a href="#" class="btn btn-primary"><i class="fa fa-download"></i> Download</a>
+                                    <a href="https://github.com/muendiz/symponent/releases/download/v0.1-alpha/symponent-20170914.zip" class="btn btn-primary"><i class="fa fa-download"></i> Download</a>
                                 </div>
                                 <!-- /.box-body -->
                             </div>
@@ -173,10 +174,27 @@
 
                 <section id="usage" data-spy="scroll" data-target="#scrollspy-usage">
                     <h2 class="page-header"><a href="#usage">Usage</a></h3>
+                        <!-- getting started -->
                         <div class="section-linker" id="usage-getting-started"></div>
                         <h3 id="usage-getting-started">Getting Started</h3>
                         <p class="lead">Include script tag you downloaded to your html page.</p>
                         <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
+
+                        <!-- how it works -->
+                        <div class="section-linker" id="usage-how-it-works"></div>
+                        <h3 id="usage-how-it-works">How <strong>sym</strong>ponent Works</h3>
+                        <p class="lead"><strong>sym</strong>ponent has one-way data binding. It means you need to update your model data
+                            on user input such as if select element's selection changes, if user clicks checkbox, types input
+                            to text box, etc. by using <a>events.</a></p>
+                        <p class="lead"><strong>sym</strong>ponent allows you to use models within DOM elements with curly brackets while
+                            creating these elements(e.g. <code>{modelName.propertyName}</code>). As you can understand that
+                            you should pass <b>model parameter</b> to the element created for using it in element.</p>
+                        <p class="lead">When you use template syntax and use model in it, <strong>sym</strong>ponent automatically binds
+                            models and DOM elements. This bindings are only attrbute/value level. It means that when you
+                            change models' any property binded to a DOM element, these elements will be updated. "Will be
+                            updated" doesn't mean that element will be fully re-rendered. Where you have used these properties
+                            in element(e.g. <span class="label label-primary">id</span> attribute, <span class="label label-primary">value</span>                            attribute or <span class="label label-primary">innerText</span>) only related part will be re-assigned
+                            based on models' properties' values.</p>
 
 
                         <div class="section-linker" id="usage-create-first-sym"></div>
@@ -185,148 +203,59 @@
                             <strong>sym</strong>ponent supports only JavaScript syntax yet. The smallest symponent example
                             looks like below:
                         </p>
-
-                        <div class="nav-tabs-custom">
-                            <ul class="nav nav-tabs">
-                                <li class="active"><a href="#create-first-symtab_1" data-toggle="tab" aria-expanded="true">JavaScript</a></li>
-                                <li class=""><a href="#create-first-symtab_2" data-toggle="tab" aria-expanded="false">HTML</a></li>
-                                <li class=""><a href="#create-first-symtab_3" data-toggle="tab" aria-expanded="false">CSS</a></li>
-                            </ul>
-                            <div class="tab-content">
-                                <div class="tab-pane active" id="create-first-symtab_1">
-                                    <pre class="prettyprint"><code class="javascript">sym.createComponent(
-    sym.createElement('div', {}, 'Hello symponent!'),
-    'container-element-id'
-);</code></pre>
-                                </div>
-                                <div class="tab-pane" id="create-first-symtab_2">
-                                    <pre class="prettyprint"><code class="html">&lt;div class=&quot;container-element-id&quot;&gt;&lt;/div&gt;</code></pre>
-                                </div>
-                                <div class="tab-pane" id="create-first-symtab_3">
-
-                                </div>
-                            </div>
+                        <iframe class="result-frame" width="100%" height="160" src="http://jsfiddle.net/enginustun/z1xgf7yj/3/embedded/result,js,html/"
+                            allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+                        <div class="callout callout-danger">
+                            <h4>Note:</h4>
+                            <p>Please see <a href="#notYet">API documentation</a> for usage of these functions.<br/>
+                                <code>sym.createComponent</code>
+                                <code>sym.createElement</code>
+                            </p>
                         </div>
-                        <div class="box box-primary">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">Result</h3>
-                            </div>
-                            <div class="box-body">
-                                <div id="container"></div>
-                            </div>
-                        </div>
-                        <script>
-                            sym.createComponent(
-                                sym.createElement('div', {}, 'Hello symponent!'),
-                                'container'
-                            );
-                        </script>
+
 
                         <!-- template syntax -->
                         <div class="section-linker" id="usage-template-syntax"></div>
                         <h3 id="usage-template-syntax">Models and Template Syntax</h3>
-                        <p class="lead"><strong>sym</strong>ponent allows you to use models in elements with curly brackets <code>{modelName.propertyName}</code>.
-                            As you can understand that you should pass <b>model parameter</b> to the element created for
-                            using it in element.</p>
-
-                        <div class="nav-tabs-custom">
-                            <ul class="nav nav-tabs">
-                                <li class="active"><a href="#template-syntaxtab_1" data-toggle="tab" aria-expanded="true">JavaScript</a></li>
-                                <li class=""><a href="#template-syntaxtab_2" data-toggle="tab" aria-expanded="false">HTML</a></li>
-                                <li class=""><a href="#template-syntaxtab_3" data-toggle="tab" aria-expanded="false">CSS</a></li>
-                            </ul>
-                            <div class="tab-content">
-                                <div class="tab-pane active" id="template-syntaxtab_1">
-                                    <pre class="prettyprint"><code class="javascript">var userObject = { name: 'John', surname: 'Doe' };
-sym.createComponent(
-    sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!'),
-    'container-element-id'
-);</code></pre>
-                                </div>
-                                <div class="tab-pane" id="template-syntaxtab_2">
-                                    <pre class="prettyprint"><code class="html">&lt;div class=&quot;container-element-id&quot;&gt;&lt;/div&gt;</code></pre>
-                                </div>
-                                <div class="tab-pane" id="template-syntaxtab_3">
-
-                                </div>
-                            </div>
+                        <p class="lead">As mentioned above in section <a href="#usage-how-it-works">How symponent Works</a> you can use models
+                            within elements easily <code>{modelName.propertyName}</code>.</p>
+                        <iframe class="result-frame" width="100%" height="180" src="http://jsfiddle.net/enginustun/z1xgf7yj/4/embedded/result,js,html/"
+                            allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+                        <div class="callout callout-danger">
+                            <h4>Note:</h4>
+                            <p>Please see <a href="#notYet">API documentation</a> for usage of template syntax.<br/>
+                                <code>{modelName.propertyName}</code>
+                            </p>
                         </div>
-                        <div class="box box-primary">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">Result</h3>
-                            </div>
-                            <div class="box-body">
-                                <div id="container-with-user-model"></div>
-                            </div>
-                        </div>
-                        <script>
-                            var userObject = { name: 'John', surname: 'Doe' };
-                            sym.createComponent(
-                                sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!'),
-                                'container-with-user-model'
-                            );
-                        </script>
 
                         <!-- Interactivity -->
                         <div class="section-linker" id="usage-interact"></div>
                         <h3 id="usage-interact">Interactivity</h3>
-                        <p class="lead">Interactive user inputs can be defined easily.</p>
-
-                        <div class="nav-tabs-custom">
-                            <ul class="nav nav-tabs">
-                                <li class="active"><a href="#interacttab_1" data-toggle="tab" aria-expanded="true">JavaScript</a></li>
-                                <li class=""><a href="#interacttab_2" data-toggle="tab" aria-expanded="false">HTML</a></li>
-                                <li class=""><a href="#interacttab_3" data-toggle="tab" aria-expanded="false">CSS</a></li>
-                            </ul>
-                            <div class="tab-content">
-                                <div class="tab-pane active" id="interacttab_1">
-                                    <pre class="prettyprint"><code class="javascript">var userObject = { name: 'John', surname: 'Doe' };
-
-sym.createComponent(
-    sym.createElement('div', { model: { user: userObject } }, 
-        'Hello {user.name} {user.surname}!',
-        sym.createElement('input', { value: '{user.name}' })
-    ),
-    'container-element-id'
-);</code></pre>
-                                </div>
-                                <div class="tab-pane" id="interacttab_2">
-                                    <pre class="prettyprint"><code class="html">&lt;div class=&quot;container-element-id&quot;&gt;&lt;/div&gt;</code></pre>
-                                </div>
-                                <div class="tab-pane" id="interacttab_3">
-
-                                </div>
-                            </div>
+                        <p class="lead">
+                            Interactive user inputs can be defined easily. If you are not familiar with how to use events, we suggest you to check it
+                            out <a href="">Using Events</a> section firstly.
+                        </p>
+                        <iframe class="result-frame" width="100%" height="420" src="http://jsfiddle.net/enginustun/z1xgf7yj/11/embedded/result,js,html/"
+                            allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+                        <p class="lead">
+                            <code>model: { user: userObject }</code> | This syntax creates model scope and allows you to use
+                            this model in every child of defined element and in itself.
+                            <br/>
+                            <code>element.model.user.name = event.target.value;</code> | <b>element.model.user</b> refers to user object of defined model above.
+                            <br/>
+                            If you change model's user object's property or original userObject's property which is binded to a DOM element, this element will be updated immediately.
+                        </p>
+                        <div class="callout callout-danger">
+                            <h4>Note:</h4>
+                            <p class="lead">Please see <a href="#notYet">API documentation</a> for usage of events.<br/>
+                                <pre class="prettyprint"><code class="javascript">events: {
+    input: function(event, element){
+        element.model.user.name = event.target.value;
+    }
+}</code></pre>
+                            </p>
                         </div>
-                        <div class="box box-primary">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">Result</h3>
-                            </div>
-                            <div class="box-body">
-                                <div id="container-with-user-input"></div>
-                                <br/>
-                                <div class="box box-solid box-warning">
-                                    <div class="box-header">
-                                        <h3 class="box-title">Warning</h3>
-                                    </div>
-                                    <!-- /.box-header -->
-                                    <div class="box-body">
-                                        Wait what? Why there is no changes when you changed value in input?
-                                    </div>
-                                    <!-- /.box-body -->
-                                </div>
-                            </div>
-                        </div>
-                        <script>
-                            var userObject = { name: 'John', surname: 'Doe' };
-                            sym.createComponent(
-                                sym.createElement('div', { model: { user: userObject } }, 'Hello {user.name} {user.surname}!',
-                                    sym.createElement('br'),
-                                    sym.createElement('input', { type: 'text', value: '{user.name}' })
-                                ),
-                                'container-with-user-input'
-                            );
-                        </script>
+
                 </section>
                 <div class="clearfix"></div>
 
