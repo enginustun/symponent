@@ -400,7 +400,11 @@ if (!window.sym) {
                     oldChild = oldElem.childNodes[i];
                 deepCopyCustomAttributesAndEvents(newChild, oldChild);
             }
-            if (newElem && oldElem && !isTextNode(newElem)) {
+            if (isTextNode(newElem)) {
+                newElem['__nakedinnervalue'] = oldElem['__nakedinnervalue'];
+                defineEmptySetter(newElem, '__nakedinnervalue');
+                newElem.__symElementId = generateId();
+            } else if (newElem && oldElem) {
                 if (oldElem.loopTemplate && !newElem.loopTemplate) {
                     newElem.loopTemplate = oldElem.loopTemplate;
                 }
@@ -511,13 +515,11 @@ if (!window.sym) {
 
         //binds elements and models
         var setBindedElements = function (nakedValue, elem, attrName) {
-            var modelObj = isTextNode(elem) ? elem.parentNode.model : elem.model;
             while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
                 var propertyName = execResult[1],
                     modelName = execResult[0].replace(propertyName, '');
                 propertyName = propertyName.substr(1);
-                var model = eval('modelObj.' + modelName);
-
+                var model = eval('elem.model.' + modelName);
                 //define binded elements' container object
                 if (!model.hasOwnProperty('__symBinded')) {
                     Object.defineProperty(model, '__symBinded', {
@@ -530,7 +532,7 @@ if (!window.sym) {
                 if (!model.__symBinded[propertyName]) {
                     model.__symBinded[propertyName] = {};
                 }
-                var ourElem = isTextNode(elem) ? elem.parentNode : elem;
+                var ourElem = elem;
                 if (!model.__symBinded[propertyName][ourElem.__symElementId]) {
                     model.__symBinded[propertyName][ourElem.__symElementId] = {
                         elem: ourElem
@@ -548,11 +550,6 @@ if (!window.sym) {
 
         //renders element's attributes and inner text
         var renderAttributesAndText = function (elem) {
-            if (isTextNode(elem) && !elem.parentNode.attributes['__nakedinnervalue']) {
-                elem.parentNode.attributes['__nakedinnervalue'] = elem.nodeValue;
-                defineEmptySetter(elem.parentNode.attributes, '__nakedinnervalue');
-            }
-
             if (!isTextNode(elem)) {
                 if (elem.attributes) {
                     var removeChecked = false;
@@ -590,10 +587,10 @@ if (!window.sym) {
                 }
             }
             else {
-                var nakedValue = elem.parentNode.attributes['__nakedinnervalue'];
+                var nakedValue = elem['__nakedinnervalue'];
                 if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
                     setBindedElements(nakedValue, elem, 'innervalue');
-                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.parentNode.model);
+                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
                 }
             }
             createItemList(elem);
@@ -617,44 +614,36 @@ if (!window.sym) {
                 if (elem.attributes) {
                     for (var i = 0; i < attributes.length; i++) {
                         var attrName = attributes[i];
-                        if (attrName === 'innervalue') {
-                            var nakedValue = elem.attributes['__nakedinnervalue'];
-                            if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                                for (var childNodeKey in elem.childNodes) {
-                                    if (elem.childNodes.hasOwnProperty(childNodeKey)) {
-                                        var childNode = elem.childNodes[childNodeKey];
-                                        if (isTextNode(childNode)) {
-                                            childNode.nodeValue = findAndReplaceExecResult(childNode, nakedValue, elem.model);
-                                        }
-                                    }
-                                }
+                        if (attrName === 'checked') {
+                            elem.setAttribute('checked', true);
+                        }
+                        var attr = elem.attributes[attrName],
+                            nakedValue = elem.attributes['__naked' + attrName];
+                        if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                            attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
+                            if (attrName === 'value') {
+                                elem.value = attr.value;
                             }
                         }
-                        else {
-                            if (attrName === 'checked') {
-                                elem.setAttribute('checked', true);
+                        if (attrName === 'checked' && !(attr.value === 'true')) {
+                            elem.removeAttribute(attrName);
+                        }
+                        if (attrName === 'render') {
+                            if (elem.attributes.render.value !== 'true') {
+                                elem.style.display = 'none';
                             }
-                            var attr = elem.attributes[attrName],
-                                nakedValue = elem.attributes['__naked' + attrName];
-                            if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                                attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
-                                if (attrName === 'value') {
-                                    elem.value = attr.value;
-                                }
-                            }
-                            if (attrName === 'checked' && !(attr.value === 'true')) {
-                                elem.removeAttribute(attrName);
-                            }
-                            if (attrName === 'render') {
-                                if (elem.attributes.render.value !== 'true') {
-                                    elem.style.display = 'none';
-                                }
-                                else {
-                                    elem.style.display = 'initial';
-                                }
+                            else {
+                                elem.style.display = 'initial';
                             }
                         }
                     }
+                }
+            }
+            else {
+                var nakedValue = elem['__nakedinnervalue'];
+                if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                    setBindedElements(nakedValue, elem, 'innervalue');
+                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
                 }
             }
         }
@@ -827,10 +816,11 @@ if (!window.sym) {
                     }
                     else if (typeof childList[i] === 'string') {
                         var newElem = htmlFromString(childList[i]);
+                        newElem.__symElementId = generateId();
                         elem.appendChild(newElem);
                         if (~childList[i].indexOf('{') && ~childList[i].indexOf('}')) {
-                            elem.attributes['__nakedinnervalue'] = childList[i];
-                            defineEmptySetter(elem.attributes, '__nakedinnervalue');
+                            newElem['__nakedinnervalue'] = childList[i];
+                            defineEmptySetter(newElem, '__nakedinnervalue');
                         }
                     }
                 }
