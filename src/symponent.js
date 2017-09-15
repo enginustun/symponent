@@ -9,6 +9,36 @@ if (!window.sym) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
 
+    //creates and return HTML Node from string
+    function htmlFromString(s) {
+        var div = document.createElement('div');
+        div.innerHTML = s;
+        return div.firstChild;
+    }
+
+    //check if value is primitive
+    function isPrimitive(value) {
+        return (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean'
+        )
+    }
+
+    //checks if object is array or json object. can it be iterated with forin loop?
+    function isIterable(obj) {
+        if (obj) {
+            var propType = Object.prototype.toString.call(obj);
+            return propType === '[object Object]' || propType === '[object Array]';
+        }
+        return false;
+    }
+
+    //checks if passed element is Node and also its type is TEXT_NODE
+    function isTextNode(node) {
+        return (node instanceof Node && node.nodeType === Node.TEXT_NODE);
+    }
+
     // sym library
     window.sym = (new function () {
         var self = this,
@@ -311,43 +341,13 @@ if (!window.sym) {
             weedOutReg = /[a-zA-Z_$][0-9a-zA-Z_$]*([.][a-zA-Z_$][0-9a-zA-Z_$]*)+/g,
             execResult;
 
-        //check if value is primitive
-        function isPrimitive(value) {
-            return (
-                typeof value === 'string' ||
-                typeof value === 'number' ||
-                typeof value === 'boolean'
-            )
-        }
-
-        //checks if object is array or json object. can it be iterated with forin loop?
-        var isIterable = function (obj) {
-            if (obj) {
-                var propType = Object.prototype.toString.call(obj);
-                return propType === '[object Object]' || propType === '[object Array]';
-            }
-            return false;
-        }
-
-        //checks if passed element is Node and also its type is TEXT_NODE
-        function isTextNode(node) {
-            return (node instanceof Node && node.nodeType === Node.TEXT_NODE);
-        }
-
         //it will be used to generate id for elements which has no id
-        var generateId = function () {
+        function generateId() {
             return idPrefix + idCounter++;
         }
 
-        //creates and return HTML Node from string
-        var htmlFromString = function (s) {
-            var div = document.createElement('div');
-            div.innerHTML = s;
-            return div.firstChild;
-        }
-
         //adds event listeners to element
-        var addEventListeners = function (elem, events) {
+        function addEventListeners(elem, events) {
             if (events) {
                 elem.symEvents = events;
             }
@@ -362,7 +362,7 @@ if (!window.sym) {
         }
 
         //finds match by regex and replace matched key with its value in model
-        var findAndReplaceExecResult = function (elem, nakedValue, models) {
+        function findAndReplaceExecResult(elem, nakedValue, models) {
             var parsedValue = nakedValue;
             if (~nakedValue.indexOf('{') && ~nakedValue.indexOf('}')) {
                 var $index = -1;
@@ -394,7 +394,7 @@ if (!window.sym) {
         }
 
         //copies self defined attributes, templates, models etc. for cloned elements from template element
-        var deepCopyCustomAttributesAndEvents = function (newElem, oldElem) {
+        function deepCopyCustomAttributesAndEvents(newElem, oldElem) {
             for (var i = 0; i < newElem.childNodes.length; i++) {
                 var newChild = newElem.childNodes[i],
                     oldChild = oldElem.childNodes[i];
@@ -421,8 +421,120 @@ if (!window.sym) {
             }
         }
 
+        //defines empty setter to properties which will be evaluated on rendering phase to avoid XSS attack and external interventions.
+        function defineEmptySetter(currentObject, propKey) {
+            var storedValue = currentObject[propKey];
+            Object.defineProperty(currentObject, propKey,
+                {
+                    get: function () { return storedValue },
+                    set: function (val) {
+                        console.log('OMG! OMG! We are hacked. You need to try other tricks, bad boy :)');
+                    }
+                }
+            )
+        }
+
+        //shows to get/set definitions of model are done
+        function defineRenderedTrue(model) {
+            if (!model.hasOwnProperty('__isRendered')) {
+                Object.defineProperty(model, '__isRendered', {
+                    enumerable: false,
+                    value: true
+                });
+            }
+        }
+
+        //recursive helper function of defineGettersAndSetters, actually all work is done here 
+        function defineGettersAndSettersHelper(model, elem) {
+            if (isIterable(model) && !model.__isRendered) {
+                for (var propName in model) {
+                    // IIFE
+                    (function (propName) {
+                        if (model.hasOwnProperty(propName)) {
+                            var modelProp = model[propName];
+                            if (isIterable(modelProp)) {
+                                defineGettersAndSettersHelper(modelProp, elem);
+                            }
+                            else if (isPrimitive(modelProp)) {
+                                Object.defineProperty(model, '__sym' + propName, {
+                                    enumerable: false,
+                                    value: modelProp,
+                                    writable: true
+                                });
+                                Object.defineProperty(model, propName,
+                                    {
+                                        get: function () { return model['__sym' + propName] },
+                                        set: function (val) {
+                                            model['__sym' + propName] = val;
+
+                                            if (isIterable(model.__symBound[propName])) {
+                                                for (var elemId in model.__symBound[propName]) {
+                                                    if (model.__symBound[propName].hasOwnProperty(elemId)) {
+                                                        var elementProps = model.__symBound[propName][elemId];
+                                                        renderAttributeOrText(elementProps.elem, elementProps.attributes);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    }(propName));
+                }
+                defineRenderedTrue(model);
+            }
+        }
+
+        //defines get and set functions of each property of element's models
+        function defineGettersAndSetters(elem) {
+            if (!isTextNode(elem) && isIterable(elem.model)) {
+                for (var propName in elem.model) {
+                    if (elem.model.hasOwnProperty(propName)) {
+                        var modelProp = elem.model[propName];
+                        defineGettersAndSettersHelper(modelProp, elem);
+                    }
+                }
+            }
+        }
+
+        //binds elements and models
+        function setBoundElements(nakedValue, elem, attrName) {
+            while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
+                var propertyName = execResult[1],
+                    modelName = execResult[0].replace(propertyName, '');
+                propertyName = propertyName.substr(1);
+                var model = eval('elem.model.' + modelName);
+                //define bound elements' container object
+                if (!model.hasOwnProperty('__symBound')) {
+                    Object.defineProperty(model, '__symBound', {
+                        enumerable: false,
+                        value: {},
+                        writable: true
+                    });
+                }
+
+                if (!model.__symBound[propertyName]) {
+                    model.__symBound[propertyName] = {};
+                }
+                var ourElem = elem;
+                if (!model.__symBound[propertyName][ourElem.__symElementId]) {
+                    model.__symBound[propertyName][ourElem.__symElementId] = {
+                        elem: ourElem
+                    };
+                }
+                var elementProps = model.__symBound[propertyName][ourElem.__symElementId];
+                if (!elementProps.attributes) {
+                    elementProps.attributes = [];
+                }
+                if (attrName && !~elementProps.attributes.indexOf(attrName)) {
+                    elementProps.attributes.push(attrName);
+                }
+            }
+        }
+
         //checks, creates or removes items for repeatable elements. also creates model scope of each loop items.
-        var createItemList = function (elem) {
+        function createItemList(elem) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list,
                     oldRenderedList = {};
@@ -500,56 +612,8 @@ if (!window.sym) {
             }
         }
 
-        //defines empty setter to properties which will be evaluated on rendering phase to avoid XSS attack and external interventions.
-        var defineEmptySetter = function (currentObject, propKey) {
-            var storedValue = currentObject[propKey];
-            Object.defineProperty(currentObject, propKey,
-                {
-                    get: function () { return storedValue },
-                    set: function (val) {
-                        console.log('OMG! OMG! We are hacked. You need to try other tricks, bad boy :)');
-                    }
-                }
-            )
-        }
-
-        //binds elements and models
-        var setBoundElements = function (nakedValue, elem, attrName) {
-            while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
-                var propertyName = execResult[1],
-                    modelName = execResult[0].replace(propertyName, '');
-                propertyName = propertyName.substr(1);
-                var model = eval('elem.model.' + modelName);
-                //define bound elements' container object
-                if (!model.hasOwnProperty('__symBound')) {
-                    Object.defineProperty(model, '__symBound', {
-                        enumerable: false,
-                        value: {},
-                        writable: true
-                    });
-                }
-
-                if (!model.__symBound[propertyName]) {
-                    model.__symBound[propertyName] = {};
-                }
-                var ourElem = elem;
-                if (!model.__symBound[propertyName][ourElem.__symElementId]) {
-                    model.__symBound[propertyName][ourElem.__symElementId] = {
-                        elem: ourElem
-                    };
-                }
-                var elementProps = model.__symBound[propertyName][ourElem.__symElementId];
-                if (!elementProps.attributes) {
-                    elementProps.attributes = [];
-                }
-                if (attrName && !~elementProps.attributes.indexOf(attrName)) {
-                    elementProps.attributes.push(attrName);
-                }
-            }
-        }
-
         //renders element's attributes and inner text
-        var renderAttributesAndText = function (elem) {
+        function renderAttributesAndText(elem) {
             if (!isTextNode(elem)) {
                 if (elem.attributes) {
                     var removeChecked = false;
@@ -600,18 +664,21 @@ if (!window.sym) {
             defineGettersAndSetters(elem);
         }
 
-        //shows to get/set definitions of model are done
-        var defineRenderedTrue = function (model) {
-            if (!model.hasOwnProperty('__isRendered')) {
-                Object.defineProperty(model, '__isRendered', {
-                    enumerable: false,
-                    value: true
-                });
+        //this method will be used to refresh component
+        function deepRenderAttrAndText(elem) {
+            for (var i = 0; i < elem.childNodes.length; i++) {
+                deepRenderAttrAndText(elem.childNodes[i]);
+            }
+            renderAttributesAndText(elem);
+            //addEventListeners(elem, elem.symEvents);
+
+            if (elem.tagName === 'SELECT') {
+                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue, elem.model);
             }
         }
 
         //single render element on model change
-        var renderAttributeOrText = function (elem, attributes) {
+        function renderAttributeOrText(elem, attributes) {
             if (!isTextNode(elem)) {
                 if (elem.attributes) {
                     for (var i = 0; i < attributes.length; i++) {
@@ -652,62 +719,8 @@ if (!window.sym) {
             }
         }
 
-        //recursive helper function of defineGettersAndSetters, actually all work is done here 
-        var defineGettersAndSettersHelper = function (model, elem) {
-            if (isIterable(model) && !model.__isRendered) {
-                for (var propName in model) {
-                    // IIFE
-                    (function (propName) {
-                        if (model.hasOwnProperty(propName)) {
-                            var modelProp = model[propName];
-                            if (isIterable(modelProp)) {
-                                defineGettersAndSettersHelper(modelProp, elem);
-                            }
-                            else if (isPrimitive(modelProp)) {
-                                Object.defineProperty(model, '__sym' + propName, {
-                                    enumerable: false,
-                                    value: modelProp,
-                                    writable: true
-                                });
-                                Object.defineProperty(model, propName,
-                                    {
-                                        get: function () { return model['__sym' + propName] },
-                                        set: function (val) {
-                                            model['__sym' + propName] = val;
-
-                                            if (isIterable(model.__symBound[propName])) {
-                                                for (var elemId in model.__symBound[propName]) {
-                                                    if (model.__symBound[propName].hasOwnProperty(elemId)) {
-                                                        var elementProps = model.__symBound[propName][elemId];
-                                                        renderAttributeOrText(elementProps.elem, elementProps.attributes);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                );
-                            }
-                        }
-                    }(propName));
-                }
-                defineRenderedTrue(model);
-            }
-        }
-
-        //defines get and set functions of each property of element's models
-        var defineGettersAndSetters = function (elem) {
-            if (!isTextNode(elem) && isIterable(elem.model)) {
-                for (var propName in elem.model) {
-                    if (elem.model.hasOwnProperty(propName)) {
-                        var modelProp = elem.model[propName];
-                        defineGettersAndSettersHelper(modelProp, elem);
-                    }
-                }
-            }
-        }
-
         //creates deeply model scope for element and its children
-        var createModelScope = function (elem, force) {
+        function createModelScope(elem, force) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 var curChild = elem.childNodes[i];
                 if (elem.model) {
@@ -724,19 +737,6 @@ if (!window.sym) {
                     curChild.__symModelKey = elem.__symModelKey;
                 }
                 createModelScope(curChild, force);
-            }
-        }
-
-        //this method will be used to refresh component
-        var deepRenderAttrAndText = function (elem) {
-            for (var i = 0; i < elem.childNodes.length; i++) {
-                deepRenderAttrAndText(elem.childNodes[i]);
-            }
-            renderAttributesAndText(elem);
-            //addEventListeners(elem, elem.symEvents);
-
-            if (elem.tagName === 'SELECT') {
-                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue, elem.model);
             }
         }
 
