@@ -514,31 +514,31 @@ if (!window.sym) {
         }
 
         //binds elements and models
-        var setBindedElements = function (nakedValue, elem, attrName) {
+        var setBoundElements = function (nakedValue, elem, attrName) {
             while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
                 var propertyName = execResult[1],
                     modelName = execResult[0].replace(propertyName, '');
                 propertyName = propertyName.substr(1);
                 var model = eval('elem.model.' + modelName);
-                //define binded elements' container object
-                if (!model.hasOwnProperty('__symBinded')) {
-                    Object.defineProperty(model, '__symBinded', {
+                //define bound elements' container object
+                if (!model.hasOwnProperty('__symBound')) {
+                    Object.defineProperty(model, '__symBound', {
                         enumerable: false,
                         value: {},
                         writable: true
                     });
                 }
 
-                if (!model.__symBinded[propertyName]) {
-                    model.__symBinded[propertyName] = {};
+                if (!model.__symBound[propertyName]) {
+                    model.__symBound[propertyName] = {};
                 }
                 var ourElem = elem;
-                if (!model.__symBinded[propertyName][ourElem.__symElementId]) {
-                    model.__symBinded[propertyName][ourElem.__symElementId] = {
+                if (!model.__symBound[propertyName][ourElem.__symElementId]) {
+                    model.__symBound[propertyName][ourElem.__symElementId] = {
                         elem: ourElem
                     };
                 }
-                var elementProps = model.__symBinded[propertyName][ourElem.__symElementId];
+                var elementProps = model.__symBound[propertyName][ourElem.__symElementId];
                 if (!elementProps.attributes) {
                     elementProps.attributes = [];
                 }
@@ -558,7 +558,7 @@ if (!window.sym) {
                             attrName = attr.name.toLowerCase(),
                             nakedValue = elem.attributes['__naked' + attrName];
                         if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                            setBindedElements(nakedValue, elem, attrName);
+                            setBoundElements(nakedValue, elem, attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attrName === 'value') {
                                 elem.value = attr.value;
@@ -591,7 +591,7 @@ if (!window.sym) {
             else {
                 var nakedValue = elem['__nakedinnervalue'];
                 if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                    setBindedElements(nakedValue, elem, 'innervalue');
+                    setBoundElements(nakedValue, elem, 'innervalue');
                     elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
                 }
             }
@@ -646,7 +646,7 @@ if (!window.sym) {
             else {
                 var nakedValue = elem['__nakedinnervalue'];
                 if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
-                    setBindedElements(nakedValue, elem, 'innervalue');
+                    setBoundElements(nakedValue, elem, 'innervalue');
                     elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
                 }
             }
@@ -675,10 +675,10 @@ if (!window.sym) {
                                         set: function (val) {
                                             model['__sym' + propName] = val;
 
-                                            if (isIterable(model.__symBinded[propName])) {
-                                                for (var elemId in model.__symBinded[propName]) {
-                                                    if (model.__symBinded[propName].hasOwnProperty(elemId)) {
-                                                        var elementProps = model.__symBinded[propName][elemId];
+                                            if (isIterable(model.__symBound[propName])) {
+                                                for (var elemId in model.__symBound[propName]) {
+                                                    if (model.__symBound[propName].hasOwnProperty(elemId)) {
+                                                        var elementProps = model.__symBound[propName][elemId];
                                                         renderAttributeOrText(elementProps.elem, elementProps.attributes);
                                                     }
                                                 }
