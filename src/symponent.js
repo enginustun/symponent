@@ -569,11 +569,13 @@ if (!window.sym) {
                                 removeChecked = true;
                             }
                             else if (attr.value.toLowerCase() === 'true' || attr.value.toLowerCase() === 'checked') {
+                                elem.checked = true;
                                 elem.setAttribute('checked', true);
                             }
                         }
                     }
                     if (removeChecked) {
+                        elem.checked = false;
                         elem.removeAttribute('checked');
                     }
                     if ('render' in elem.attributes) {
@@ -615,6 +617,7 @@ if (!window.sym) {
                     for (var i = 0; i < attributes.length; i++) {
                         var attrName = attributes[i];
                         if (attrName === 'checked') {
+                            elem.checked = true;
                             elem.setAttribute('checked', true);
                         }
                         var attr = elem.attributes[attrName],
@@ -626,6 +629,7 @@ if (!window.sym) {
                             }
                         }
                         if (attrName === 'checked' && !(attr.value === 'true')) {
+                            elem.checked = false;
                             elem.removeAttribute(attrName);
                         }
                         if (attrName === 'render') {
