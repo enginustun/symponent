@@ -68,6 +68,14 @@
                             <li><a href="#usage-interact">Interactivity</a></li>
                         </ul>
                     </li>
+                    <li class="treeview" id="scrollspy-examples">
+                        <a href="javascript:void(0)"><i class="fa fa-circle-o"></i> Examples</a>
+                        <ul class="nav treeview-menu">
+                            <li><a href="#examples-date">Current Time</a></li>
+                            <li><a href="#examples-list">Working with Lists</a></li>
+                            <li><a href="#examples-select">HTML Select Element</a></li>
+                        </ul>
+                    </li>
 
                     <li><a href="#license"><i class="fa fa-circle-o"></i> License</a></li>
                 </ul>
@@ -119,7 +127,7 @@
                                 <!-- /.box-header -->
                                 <div class="box-body">
                                     <p>Get latest release of <strong>sym</strong>ponent.</p>
-                                    <a href="https://github.com/muendiz/symponent/releases/download/v0.1-alpha/symponent-20170914.zip" class="btn btn-primary"><i class="fa fa-download"></i> Download</a>
+                                    <a href="https://github.com/muendiz/symponent/archive/v0.2-alpha.zip" class="btn btn-primary"><i class="fa fa-download"></i> Download</a>
                                 </div>
                                 <!-- /.box-body -->
                             </div>
@@ -127,14 +135,14 @@
                         </div>
                         <!-- /.col -->
                         <div class="col-sm-6">
-                            <div class="box box-danger">
+                            <div class="box box-info">
                                 <div class="box-header with-border">
                                     <h3 class="box-title">Source Code</h3>
                                 </div>
                                 <!-- /.box-header -->
                                 <div class="box-body">
                                     <p>Fork <strong>sym</strong>ponent on Github to contribute.</p>
-                                    <a href="https://github.com/muendiz/symponent" class="btn btn-danger"><i class="fa fa-github"></i> Github</a>
+                                    <a href="https://github.com/muendiz/symponent" class="btn btn-info"><i class="fa fa-github"></i> Github</a>
                                 </div>
                                 <!-- /.box-body -->
                             </div>
@@ -173,88 +181,119 @@
                 <!-- ============================================================= -->
 
                 <section id="usage" data-spy="scroll" data-target="#scrollspy-usage">
-                    <h2 class="page-header"><a href="#usage">Usage</a></h3>
-                        <!-- getting started -->
-                        <div class="section-linker" id="usage-getting-started"></div>
-                        <h3 id="usage-getting-started">Getting Started</h3>
-                        <p class="lead">Include script tag you downloaded to your html page.</p>
-                        <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
+                    <h2 class="page-header"><a href="#usage">Usage</a></h2>
+                    <!-- getting started -->
+                    <div class="section-linker" id="usage-getting-started"></div>
+                    <h3 id="usage-getting-started">Getting Started</h3>
+                    <p class="lead">Include script tag you downloaded to your html page.</p>
+                    <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
 
-                        <!-- how it works -->
-                        <div class="section-linker" id="usage-how-it-works"></div>
-                        <h3 id="usage-how-it-works">How <strong>sym</strong>ponent Works</h3>
-                        <p class="lead"><strong>sym</strong>ponent has one-way data binding. It means you need to update your model data
-                            on user input such as if select element's selection changes, if user clicks checkbox, types input
-                            to text box, etc. by using <a>events.</a></p>
-                        <p class="lead"><strong>sym</strong>ponent allows you to use models within DOM elements with curly brackets while
-                            creating these elements(e.g. <code>{modelName.propertyName}</code>). As you can understand that
-                            you should pass <b>model parameter</b> to the element created for using it in element.</p>
-                        <p class="lead">When you use template syntax and use model in it, <strong>sym</strong>ponent automatically binds
-                            models and DOM elements. This bindings are only attrbute/value level. It means that when you
-                            change models' any property binded to a DOM element, these elements will be updated. "Will be
-                            updated" doesn't mean that element will be fully re-rendered. Where you have used these properties
-                            in element(e.g. <span class="label label-primary">id</span> attribute, <span class="label label-primary">value</span>                            attribute or <span class="label label-primary">innerText</span>) only related part will be re-assigned
-                            based on models' properties' values.</p>
+                    <!-- how it works -->
+                    <div class="section-linker" id="usage-how-it-works"></div>
+                    <h3 id="usage-how-it-works">How <strong>sym</strong>ponent Works</h3>
+                    <p class="lead"><strong>sym</strong>ponent has one-way data binding. It means you need to update your model data on user
+                        input such as if select element's selection changes, if user clicks checkbox, types input to text
+                        box, etc. by using <a>events.</a></p>
+                    <p class="lead"><strong>sym</strong>ponent allows you to use models within DOM elements with curly brackets while creating
+                        these elements(e.g. <code>{modelName.propertyName}</code>). As you can understand that you should
+                        pass <b>model parameter</b> to the element created for using it in element.</p>
+                    <p class="lead">When you use template syntax and use model in it, <strong>sym</strong>ponent automatically binds models
+                        and DOM elements. This bindings are only attrbute/value level. It means that when you change models'
+                        any property binded to a DOM element, these elements will be updated. "Will be updated" doesn't mean
+                        that element will be fully re-rendered. Where you have used these properties in element(e.g.
+                        <span class="label label-primary">id</span> attribute, <span class="label label-primary">value</span>                        attribute or <span class="label label-primary">innerText</span>) only related part will be re-assigned
+                        based on models' properties' values.</p>
 
 
-                        <div class="section-linker" id="usage-create-first-sym"></div>
-                        <h3 id="usage-create-first-sym">Create First Component</h3>
-                        <p class="lead">
-                            <strong>sym</strong>ponent supports only JavaScript syntax yet. The smallest symponent example
-                            looks like below:
+                    <div class="section-linker" id="usage-create-first-sym"></div>
+                    <h3 id="usage-create-first-sym">Create First Component</h3>
+                    <p class="lead">
+                        <strong>sym</strong>ponent supports only JavaScript syntax yet. The smallest symponent example looks
+                        like below:
+                    </p>
+                    <iframe class="result-frame" width="100%" height="160" src="https://jsfiddle.net/enginustun/z1xgf7yj/12/embedded/result,js,html/"
+                        allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+                    <div class="callout callout-info">
+                        <h4>Note</h4>
+                        <p>Please see <a href="#notYet">API documentation</a> for usage of these functions.<br/>
+                            <code>sym.createComponent</code>
+                            <code>sym.createElement</code>
                         </p>
-                        <iframe class="result-frame" width="100%" height="160" src="https://jsfiddle.net/enginustun/z1xgf7yj/3/embedded/result,js,html/"
-                            allowfullscreen="allowfullscreen" frameborder="0"></iframe>
-                        <div class="callout callout-danger">
-                            <h4>Note:</h4>
-                            <p>Please see <a href="#notYet">API documentation</a> for usage of these functions.<br/>
-                                <code>sym.createComponent</code>
-                                <code>sym.createElement</code>
-                            </p>
-                        </div>
+                    </div>
 
 
-                        <!-- template syntax -->
-                        <div class="section-linker" id="usage-template-syntax"></div>
-                        <h3 id="usage-template-syntax">Models and Template Syntax</h3>
-                        <p class="lead">As mentioned above in section <a href="#usage-how-it-works">How symponent Works</a> you can use models
-                            within elements easily <code>{modelName.propertyName}</code>.</p>
-                        <iframe class="result-frame" width="100%" height="180" src="https://jsfiddle.net/enginustun/z1xgf7yj/4/embedded/result,js,html/"
-                            allowfullscreen="allowfullscreen" frameborder="0"></iframe>
-                        <div class="callout callout-danger">
-                            <h4>Note:</h4>
-                            <p>Please see <a href="#notYet">API documentation</a> for usage of template syntax.<br/>
-                                <code>{modelName.propertyName}</code>
-                            </p>
-                        </div>
-
-                        <!-- Interactivity -->
-                        <div class="section-linker" id="usage-interact"></div>
-                        <h3 id="usage-interact">Interactivity</h3>
-                        <p class="lead">
-                            Interactive user inputs can be defined easily. If you are not familiar with how to use events, we suggest you to check it
-                            out <a href="">Using Events</a> section firstly.
+                    <!-- template syntax -->
+                    <div class="section-linker" id="usage-template-syntax"></div>
+                    <h3 id="usage-template-syntax">Models and Template Syntax</h3>
+                    <p class="lead">As mentioned above in section <a href="#usage-how-it-works">How symponent Works</a> you can use models
+                        within elements easily <code>{modelName.propertyName}</code>.</p>
+                    <iframe class="result-frame" width="100%" height="180" src="https://jsfiddle.net/enginustun/z1xgf7yj/13/embedded/result,js,html/"
+                        allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+                    <div class="callout callout-info">
+                        <h4>Note</h4>
+                        <p>Please see <a href="#notYet">API documentation</a> for usage of template syntax.<br/>
+                            <code>{modelName.propertyName}</code>
                         </p>
-                        <iframe class="result-frame" width="100%" height="420" src="https://jsfiddle.net/enginustun/z1xgf7yj/11/embedded/result,js,html/"
-                            allowfullscreen="allowfullscreen" frameborder="0"></iframe>
-                        <p class="lead">
-                            <code>model: { user: userObject }</code> | This syntax creates model scope and allows you to use
-                            this model in every child of defined element and in itself.
-                            <br/>
-                            <code>element.model.user.name = event.target.value;</code> | <b>element.model.user</b> refers to user object of defined model above.
-                            <br/>
-                            If you change model's user object's property or original userObject's property which is binded to a DOM element, this element will be updated immediately.
-                        </p>
-                        <div class="callout callout-danger">
-                            <h4>Note:</h4>
-                            <p class="lead">Please see <a href="#notYet">API documentation</a> for usage of events.<br/>
-                                <pre class="prettyprint"><code class="javascript">events: {
+                    </div>
+
+                    <!-- Interactivity -->
+                    <div class="section-linker" id="usage-interact"></div>
+                    <h3 id="usage-interact">Interactivity</h3>
+                    <p class="lead">
+                        Interactive user inputs can be defined easily. If you are not familiar with how to use events, we suggest you to check it
+                        out <a href="">Using Events</a> section firstly.
+                    </p>
+                    <iframe class="result-frame" width="100%" height="420" src="https://jsfiddle.net/enginustun/z1xgf7yj/14/embedded/result,js,html/"
+                        allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+                    <p class="lead">
+                        <code>model: { user: userObject }</code> | This syntax creates model scope and allows you to use
+                        this model in every child of defined element and in itself.
+                        <br/>
+                        <code>element.model.user.name = event.target.value;</code> | <b>element.model.user</b> refers to
+                        user object of defined model above.
+                        <br/> If you change model's user object's property or original userObject's property which is binded
+                        to a DOM element, this element will be updated immediately.
+                    </p>
+                    <div class="callout callout-info">
+                        <h4>Note</h4>
+                        <p class="lead">Please see <a href="#notYet">API documentation</a> for usage of events.<br/>
+                            <pre class="prettyprint"><code class="javascript">events: {
     input: function(event, element){
         element.model.user.name = event.target.value;
     }
 }</code></pre>
-                            </p>
-                        </div>
+                        </p>
+                    </div>
+
+                </section>
+                <div class="clearfix"></div>
+
+                <section id="examples" data-spy="scroll" data-target="#scrollspy-examples">
+                    <h2 class="page-header"><a href="#examples">Examples</a></h2>
+                    <!-- current time -->
+                    <div class="section-linker" id="examples-date"></div>
+                    <h3 id="examples-date">Current Time</h3>
+                    <iframe width="100%" height="310" src="https://jsfiddle.net/enginustun/0ucqceyx/embedded/result,js,html/" allowfullscreen="allowfullscreen"
+                        frameborder="0"></iframe>
+
+                    <!-- working with lists -->
+                    <div class="section-linker" id="examples-list"></div>
+                    <h3 id="examples-list">Working with Lists</h3>
+                    <iframe width="100%" height="265" src="https://jsfiddle.net/enginustun/0ucqceyx/1/embedded/result,js,html/" allowfullscreen="allowfullscreen"
+                        frameborder="0"></iframe>
+
+                    <!-- working with lists -->
+                    <div class="section-linker" id="examples-select"></div>
+                    <h3 id="examples-select">HTML Select Element</h3>
+                    <iframe width="100%" height="420" src="https://jsfiddle.net/enginustun/y6wxoLg7/10/embedded/result,js,html/" allowfullscreen="allowfullscreen"
+                        frameborder="0"></iframe>
+
+                    <div class="callout callout-info">
+                        <h4>Note</h4>
+                        <p class="lead">
+                            More examples and documentation will be provided.
+                        </p>
+                    </div>
 
                 </section>
                 <div class="clearfix"></div>
