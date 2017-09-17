@@ -552,48 +552,55 @@ if (!window.sym) {
                         //because we need to keep __symElementId value in its attribute.
                         var curModel = itemModel[key];
                         if (isPrimitive(curModel)) {
-                            console.warn('Please do not use primitive values as model');
+                            curModel = itemModel;
+                        }
+                        if (!curModel.__symElementIds) {
+                            Object.defineProperty(curModel, '__symElementIds', {
+                                enumerable: false,
+                                value: [],
+                                writable: true
+                            });
+                        }
+                        var anyPreRenderedFound = [];
+                        if (curModel.__symElementIds) {
+                            var symElemSearchList = curModel.__symElementIds;
+                            if (isPrimitive(itemModel[key])) {
+                                symElemSearchList = curModel.__symElementIds[key] || [];
+                            }
+                            anyPreRenderedFound = symElemSearchList.filter(function (id) {
+                                return oldRenderedList[id];
+                            });
+                        }
+                        //if this condition will be matched then no need to clone and append new element, it already exists 
+                        if (anyPreRenderedFound.length > 0) {
+                            for (var i = 0; i < anyPreRenderedFound.length; i++) {
+                                var foundedId = anyPreRenderedFound[i];
+                                delete oldRenderedList[foundedId];
+                            }
                         }
                         else {
-                            if (!curModel.__symElementIds) {
-                                Object.defineProperty(curModel, '__symElementIds', {
-                                    enumerable: false,
-                                    value: [],
-                                    writable: true
-                                });
-                            }
-                            var anyPreRenderedFound = [];
-                            if (curModel.__symElementIds) {
-                                anyPreRenderedFound = curModel.__symElementIds.filter(function (id) {
-                                    return oldRenderedList[id];
-                                });
-                            }
-                            //if this condition will be matched then no need to clone and append new element, it already exists 
-                            if (anyPreRenderedFound.length > 0) {
-                                for (var i = 0; i < anyPreRenderedFound.length; i++) {
-                                    var foundedId = anyPreRenderedFound[i];
-                                    delete oldRenderedList[foundedId];
+                            var renderedItem = elem.loopTemplate.cloneNode(true);
+                            deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
+                            //generate new id to keep elements unique
+                            renderedItem.__symElementId = generateId();
+                            if (isPrimitive(itemModel[key])) {
+                                if (curModel.__symElementIds && !curModel.__symElementIds[itemModel[key]]) {
+                                    curModel.__symElementIds[itemModel[key]] = [];
                                 }
+                                curModel.__symElementIds[itemModel[key]].push(renderedItem.__symElementId);
+                            } else {
+                                curModel.__symElementIds && curModel.__symElementIds.push(renderedItem.__symElementId);
                             }
-                            else {
-                                var renderedItem = elem.loopTemplate.cloneNode(true);
-                                deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
-                                //generate new id to keep elements unique
-                                renderedItem.__symElementId = generateId();
-                                if (typeof item !== 'string') {
-                                    curModel.__symElementIds && curModel.__symElementIds.push(renderedItem.__symElementId);
-                                }
 
-                                if (!renderedItem.model) {
-                                    renderedItem.model = {};
-                                }
-                                //assign current model to list-item element
-                                renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
-                                renderedItem.__symModelKey = key;
-
-                                //append list item to element
-                                elem.appendChild(renderedItem);
+                            if (!renderedItem.model) {
+                                renderedItem.model = {};
                             }
+                            //assign current model to list-item element
+                            renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
+                            renderedItem.__symModelKey = key;
+
+                            //append list item to element
+                            elem.appendChild(renderedItem);
                         }
                     }
 
