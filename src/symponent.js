@@ -346,6 +346,11 @@ if (!window.sym) {
             return idPrefix + idCounter++;
         }
 
+        //checks if str is renderable template syntax or not
+        function isTemplateSyntax(str) {
+            return (typeof str === 'string' && ~str.indexOf('{') && ~str.indexOf('}'))
+        }
+
         //adds event listeners to element
         function addEventListeners(elem, events) {
             if (events) {
@@ -364,7 +369,7 @@ if (!window.sym) {
         //finds match by regex and replace matched key with its value in model
         function findAndReplaceExecResult(elem, nakedValue, models) {
             var parsedValue = nakedValue;
-            if (~nakedValue.indexOf('{') && ~nakedValue.indexOf('}')) {
+            if (isTemplateSyntax(nakedValue)) {
                 var $index = -1;
                 var parsedIndex = parseInt(elem.__symModelKey);
                 if (!isNaN(parseInt(parsedIndex))) {
@@ -628,7 +633,7 @@ if (!window.sym) {
                         var attr = elem.attributes[i],
                             attrName = attr.name.toLowerCase(),
                             nakedValue = elem.attributes['__naked' + attrName];
-                        if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                        if (isTemplateSyntax(nakedValue)) {
                             setBoundElements(nakedValue, elem, attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attrName === 'value') {
@@ -661,7 +666,7 @@ if (!window.sym) {
             }
             else {
                 var nakedValue = elem['__nakedinnervalue'];
-                if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                if (isTemplateSyntax(nakedValue)) {
                     setBoundElements(nakedValue, elem, 'innervalue');
                     elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
                 }
@@ -696,7 +701,7 @@ if (!window.sym) {
                         }
                         var attr = elem.attributes[attrName],
                             nakedValue = elem.attributes['__naked' + attrName];
-                        if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                        if (isTemplateSyntax(nakedValue)) {
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attrName === 'value') {
                                 elem.value = attr.value;
@@ -719,7 +724,7 @@ if (!window.sym) {
             }
             else {
                 var nakedValue = elem['__nakedinnervalue'];
-                if (nakedValue && typeof nakedValue === 'string' && ~nakedValue.indexOf('{')) {
+                if (isTemplateSyntax(nakedValue)) {
                     setBoundElements(nakedValue, elem, 'innervalue');
                     elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
                 }
@@ -806,7 +811,7 @@ if (!window.sym) {
                         if (allowedProperties.hasOwnProperty(key) || isCustomAttribute(key)) {
                             var validPropName = DOMPropertyNames[key] ? DOMPropertyNames[key] : key;
                             elem.setAttribute(validPropName, attrs[key]);
-                            if (typeof attrs[key] === 'string' && ~attrs[key].indexOf('{') && ~attrs[key].indexOf('}')) {
+                            if (isTemplateSyntax(attrs[key])) {
                                 elem.attributes['__naked' + validPropName] = attrs[key];
                                 defineEmptySetter(elem.attributes, '__naked' + validPropName);
                             }
@@ -829,7 +834,7 @@ if (!window.sym) {
                         var newElem = htmlFromString(childList[i]);
                         newElem.__symElementId = generateId();
                         elem.appendChild(newElem);
-                        if (~childList[i].indexOf('{') && ~childList[i].indexOf('}')) {
+                        if (isTemplateSyntax(childList[i])) {
                             newElem['__nakedinnervalue'] = childList[i];
                             defineEmptySetter(newElem, '__nakedinnervalue');
                         }
