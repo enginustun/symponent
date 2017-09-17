@@ -543,6 +543,7 @@ if (!window.sym) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list,
                     oldRenderedList = {};
+                    
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
 
                     //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
@@ -750,6 +751,22 @@ if (!window.sym) {
                 }
                 createModelScope(curChild, force);
             }
+            if (elem.model && isTemplateSyntax(elem.model)) {
+                elem.model = eval(elem.model);
+            }
+            if (elem.loopTemplate) {
+                if (elem.loopTemplate.loopModel && elem.loopTemplate.loopModel.list && isTemplateSyntax(elem.loopTemplate.loopModel.list)) {
+                    elem.loopTemplate.loopModel.list = eval(elem.loopTemplate.loopModel.list);
+                }
+                defineEmptySetter(elem, 'loopTemplate');
+                if (elem.loopTemplate.loopModel) {
+                    defineEmptySetter(elem.loopTemplate, 'loopModel');
+                    if (elem.loopTemplate.loopModel.list) {
+                        defineEmptySetter(elem.loopTemplate.loopModel, 'list');
+                    }
+                }
+            }
+            defineEmptySetter(elem, 'model');
         }
 
         //creates component Node and returns helper functions
