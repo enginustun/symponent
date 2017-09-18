@@ -1,3 +1,8 @@
+/*!
+ * Symponent.js
+ * (c) 2017-Present Engin Üstün
+ * Released under the MIT License.
+ */
 //check if `sym` is already exists or not.
 if (!window.sym) {
 
@@ -543,7 +548,7 @@ if (!window.sym) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list,
                     oldRenderedList = {};
-                    
+
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
 
                     //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
