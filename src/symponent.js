@@ -576,7 +576,7 @@ if (!window.sym) {
                         if (curModel.__symElementIds) {
                             var symElemSearchList = curModel.__symElementIds;
                             if (isPrimitive(itemModel[key])) {
-                                symElemSearchList = curModel.__symElementIds[key] || [];
+                                symElemSearchList = curModel.__symElementIds[itemModel[key]] || [];
                             }
                             anyPreRenderedFound = symElemSearchList.filter(function (id) {
                                 return oldRenderedList[id];
@@ -609,7 +609,7 @@ if (!window.sym) {
                             //assign current model to list-item element
                             renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
                             renderedItem.__symModelKey = key;
-
+                            
                             //append list item to element
                             elem.appendChild(renderedItem);
                         }
