@@ -789,8 +789,17 @@ if (!window.sym) {
             }
 
             return {
-                refresh: function () {
-                    deepRenderAttrAndText(container);
+                refresh: function (updateElem) {
+                    if (updateElem instanceof Node) {
+                        deepRenderAttrAndText(updateElem);
+                    }
+                    else if (typeof updateElem === 'string') {
+                        updateElem = document.getElementById(updateElem);
+                        deepRenderAttrAndText(updateElem);
+                    }
+                    else {
+                        deepRenderAttrAndText(container);
+                    }
                 },
                 updateModel: function (modelName, model) {
                     if (model) {
