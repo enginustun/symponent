@@ -403,6 +403,18 @@ if (!window.sym) {
             return parsedValue;
         }
 
+        //custom event definition for rendering text nodes.
+        var renderTextNodeEvent = document.createEvent('Event');
+        renderTextNodeEvent.initEvent('renderTextNodeEvent', true, true);
+
+        //assigns "renderTextNodeEvent" to "TextNode" to update its value when it needs to be changed.
+        function addRenderTextNodeEventListener(elem, elemId, nakedValue) {
+            elem.addEventListener('renderTextNodeEvent', function () {
+                setBoundElements(nakedValue, elem, elemId, 'innervalue');
+                elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
+            });
+        }
+
         //copies self defined attributes, templates, models etc. for cloned elements from template element
         function deepCopyCustomAttributesAndEvents(newElem, oldElem) {
             for (var i = 0; i < newElem.childNodes.length; i++) {
@@ -410,10 +422,9 @@ if (!window.sym) {
                     oldChild = oldElem.childNodes[i];
                 deepCopyCustomAttributesAndEvents(newChild, oldChild);
             }
-            if (isTextNode(newElem)) {
-                newElem['__nakedinnervalue'] = oldElem['__nakedinnervalue'];
-                defineEmptySetter(newElem, '__nakedinnervalue');
-                newElem.__symElementId = generateId();
+            if (isTextNode(newElem) && isTemplateSyntax(oldElem.nodeValue)) {
+                //when cloning a node, oldElem's value is non-rendered value, so it can be used as nakedValue
+                addRenderTextNodeEventListener(newElem, generateId(), oldElem.nodeValue);
             } else if (newElem && oldElem) {
                 if (oldElem.loopTemplate && !newElem.loopTemplate) {
                     newElem.loopTemplate = oldElem.loopTemplate;
@@ -509,7 +520,7 @@ if (!window.sym) {
         }
 
         //binds elements and models
-        function setBoundElements(nakedValue, elem, attrName) {
+        function setBoundElements(nakedValue, elem, elemId, attrName) {
             while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
                 var propertyName = execResult[1],
                     modelName = execResult[0].replace(propertyName, '');
@@ -527,13 +538,12 @@ if (!window.sym) {
                 if (!model.__symBound[propertyName]) {
                     model.__symBound[propertyName] = {};
                 }
-                var ourElem = elem;
-                if (!model.__symBound[propertyName][ourElem.__symElementId]) {
-                    model.__symBound[propertyName][ourElem.__symElementId] = {
-                        elem: ourElem
+                if (!model.__symBound[propertyName][elemId]) {
+                    model.__symBound[propertyName][elemId] = {
+                        elem: elem
                     };
                 }
-                var elementProps = model.__symBound[propertyName][ourElem.__symElementId];
+                var elementProps = model.__symBound[propertyName][elemId];
                 if (!elementProps.attributes) {
                     elementProps.attributes = [];
                 }
@@ -592,8 +602,6 @@ if (!window.sym) {
                         else {
                             var renderedItem = elem.loopTemplate.cloneNode(true);
                             deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
-                            //generate new id to keep elements unique
-                            renderedItem.__symElementId = generateId();
                             if (isPrimitive(itemModel[key])) {
                                 if (curModel.__symElementIds && !curModel.__symElementIds[itemModel[key]]) {
                                     curModel.__symElementIds[itemModel[key]] = [];
@@ -609,7 +617,7 @@ if (!window.sym) {
                             //assign current model to list-item element
                             renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
                             renderedItem.__symModelKey = key;
-                            
+
                             //append list item to element
                             elem.appendChild(renderedItem);
                         }
@@ -640,7 +648,7 @@ if (!window.sym) {
                             attrName = attr.name.toLowerCase(),
                             nakedValue = elem.attributes['__naked' + attrName];
                         if (isTemplateSyntax(nakedValue)) {
-                            setBoundElements(nakedValue, elem, attrName);
+                            setBoundElements(nakedValue, elem, elem.__symElementId, attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attrName === 'value') {
                                 elem.value = attr.value;
@@ -671,11 +679,8 @@ if (!window.sym) {
                 }
             }
             else {
-                var nakedValue = elem['__nakedinnervalue'];
-                if (isTemplateSyntax(nakedValue)) {
-                    setBoundElements(nakedValue, elem, 'innervalue');
-                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
-                }
+                //text node needs to be updated, so trigger custom event
+                elem.dispatchEvent(renderTextNodeEvent);
             }
             createItemList(elem);
 
@@ -729,11 +734,8 @@ if (!window.sym) {
                 }
             }
             else {
-                var nakedValue = elem['__nakedinnervalue'];
-                if (isTemplateSyntax(nakedValue)) {
-                    setBoundElements(nakedValue, elem, 'innervalue');
-                    elem.nodeValue = findAndReplaceExecResult(elem, nakedValue, elem.model);
-                }
+                //text node needs to be updated, so trigger custom event
+                elem.dispatchEvent(renderTextNodeEvent);
             }
         }
 
@@ -863,11 +865,9 @@ if (!window.sym) {
                     }
                     else if (typeof childList[i] === 'string') {
                         var newElem = htmlFromString(childList[i]);
-                        newElem.__symElementId = generateId();
                         elem.appendChild(newElem);
                         if (isTemplateSyntax(childList[i])) {
-                            newElem['__nakedinnervalue'] = childList[i];
-                            defineEmptySetter(newElem, '__nakedinnervalue');
+                            addRenderTextNodeEventListener(newElem, generateId(), childList[i]);
                         }
                     }
                 }
