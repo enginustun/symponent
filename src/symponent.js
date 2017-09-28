@@ -425,6 +425,9 @@ if (!window.sym) {
             if (isTextNode(newElem) && isTemplateSyntax(oldElem.nodeValue)) {
                 //when cloning a node, oldElem's value is non-rendered value, so it can be used as nakedValue
                 addRenderTextNodeEventListener(newElem, generateId(), oldElem.nodeValue);
+                 setTimeout(function() {
+                     newElem.dispatchEvent(renderTextNodeEvent);
+                 });
             } else if (newElem && oldElem) {
                 if (oldElem.loopTemplate && !newElem.loopTemplate) {
                     newElem.loopTemplate = oldElem.loopTemplate;
@@ -632,7 +635,7 @@ if (!window.sym) {
                     createModelScope(elem);
                     //render child nodes 
                     for (var i = 0; i < elem.childNodes.length; i++) {
-                        deepRenderAttrAndText(elem.childNodes[i]);
+                        renderAttributesAndText(elem.childNodes[i]);
                     }
                 }
             }
