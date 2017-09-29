@@ -425,9 +425,9 @@ if (!window.sym) {
             if (isTextNode(newElem) && isTemplateSyntax(oldElem.nodeValue)) {
                 //when cloning a node, oldElem's value is non-rendered value, so it can be used as nakedValue
                 addRenderTextNodeEventListener(newElem, generateId(), oldElem.nodeValue);
-                 setTimeout(function() {
-                     newElem.dispatchEvent(renderTextNodeEvent);
-                 });
+                setTimeout(function () {
+                    newElem.dispatchEvent(renderTextNodeEvent);
+                });
             } else if (newElem && oldElem) {
                 if (oldElem.loopTemplate && !newElem.loopTemplate) {
                     newElem.loopTemplate = oldElem.loopTemplate;
@@ -623,19 +623,14 @@ if (!window.sym) {
 
                             //append list item to element
                             elem.appendChild(clonedItem);
+                            createModelScope(clonedItem);
+                            deepRenderAttrAndText(clonedItem);
                         }
                     }
 
                     //if this list has item, it needs to be deleted from DOM
                     for (var symId in oldRenderedList) {
                         oldRenderedList[symId].parentNode.removeChild(oldRenderedList[symId]);
-                    }
-
-                    //create recursive model scope for cloned element
-                    createModelScope(elem);
-                    //render child nodes 
-                    for (var i = 0; i < elem.childNodes.length; i++) {
-                        deepRenderAttrAndText(elem.childNodes[i]);
                     }
                 }
             }
