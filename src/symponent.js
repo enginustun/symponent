@@ -603,26 +603,26 @@ if (!window.sym) {
                             }
                         }
                         else {
-                            var renderedItem = elem.loopTemplate.cloneNode(true);
-                            deepCopyCustomAttributesAndEvents(renderedItem, elem.loopTemplate);
+                            var clonedItem = elem.loopTemplate.cloneNode(true);
+                            deepCopyCustomAttributesAndEvents(clonedItem, elem.loopTemplate);
                             if (isPrimitive(itemModel[key])) {
                                 if (curModel.__symElementIds && !curModel.__symElementIds[itemModel[key]]) {
                                     curModel.__symElementIds[itemModel[key]] = [];
                                 }
-                                curModel.__symElementIds[itemModel[key]].push(renderedItem.__symElementId);
+                                curModel.__symElementIds[itemModel[key]].push(clonedItem.__symElementId);
                             } else {
-                                curModel.__symElementIds && curModel.__symElementIds.push(renderedItem.__symElementId);
+                                curModel.__symElementIds && curModel.__symElementIds.push(clonedItem.__symElementId);
                             }
 
-                            if (!renderedItem.model) {
-                                renderedItem.model = {};
+                            if (!clonedItem.model) {
+                                clonedItem.model = {};
                             }
                             //assign current model to list-item element
-                            renderedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
-                            renderedItem.__symModelKey = key;
+                            clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
+                            clonedItem.__symModelKey = key;
 
                             //append list item to element
-                            elem.appendChild(renderedItem);
+                            elem.appendChild(clonedItem);
                         }
                     }
 
