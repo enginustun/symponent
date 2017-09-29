@@ -635,7 +635,7 @@ if (!window.sym) {
                     createModelScope(elem);
                     //render child nodes 
                     for (var i = 0; i < elem.childNodes.length; i++) {
-                        renderAttributesAndText(elem.childNodes[i]);
+                        deepRenderAttrAndText(elem.childNodes[i]);
                     }
                 }
             }
