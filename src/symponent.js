@@ -436,12 +436,13 @@ if (!window.sym) {
                     newElem.loopModel = oldElem.loopModel;
                 }
                 addEventListeners(newElem, oldElem.symEvents);
+
+                newElem.__symElementId = generateId();
                 for (var key in oldElem.attributes) {
                     if (oldElem.attributes.hasOwnProperty(key) && !(oldElem.attributes[key] instanceof Attr)) {
                         newElem.attributes[key] = oldElem.attributes[key];
                     }
                 };
-                newElem.__symElementId = generateId();
             }
         }
 
@@ -489,13 +490,13 @@ if (!window.sym) {
                                     {
                                         get: function () { return model['__sym' + propName] },
                                         set: function (val) {
+                                            var oldVal = model['__sym' + propName];
                                             model['__sym' + propName] = val;
-
-                                            if (isIterable(model.__symBound[propName])) {
-                                                for (var elemId in model.__symBound[propName]) {
-                                                    if (model.__symBound[propName].hasOwnProperty(elemId)) {
-                                                        var elementProps = model.__symBound[propName][elemId];
-                                                        renderAttributeOrText(elementProps.elem, elementProps.attributes);
+                                            if (oldVal != val) {
+                                                if (model && model.__symBound && isIterable(model.__symBound[propName])) {
+                                                    for (var curId in model.__symBound[propName]) {
+                                                        var curBoundElemProps = model.__symBound[propName][curId];
+                                                        renderAttributeOrText(curBoundElemProps.elem, curBoundElemProps.attributes);
                                                     }
                                                 }
                                             }
@@ -557,7 +558,7 @@ if (!window.sym) {
         }
 
         //checks, creates or removes items for repeatable elements. also creates model scope of each loop items.
-        function createItemList(elem) {
+        function renderItemList(elem, renderSelf) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list,
                     oldRenderedList = {};
@@ -571,6 +572,7 @@ if (!window.sym) {
                             oldRenderedList[elemId] = elem.childNodes[i];
                         }
                     }
+                    var index = 0
                     for (var key in itemModel) {
                         //if current itemModel element's type is string, wrap this element by String, 
                         //because we need to keep __symElementId value in its attribute.
@@ -589,7 +591,7 @@ if (!window.sym) {
                         if (curModel.__symElementIds) {
                             var symElemSearchList = curModel.__symElementIds;
                             if (isPrimitive(itemModel[key])) {
-                                symElemSearchList = curModel.__symElementIds[itemModel[key]] || [];
+                                symElemSearchList = curModel.__symElementIds[index] || [];
                             }
                             anyPreRenderedFound = symElemSearchList.filter(function (id) {
                                 return oldRenderedList[id];
@@ -600,19 +602,12 @@ if (!window.sym) {
                             for (var i = 0; i < anyPreRenderedFound.length; i++) {
                                 var foundedId = anyPreRenderedFound[i];
                                 delete oldRenderedList[foundedId];
+                                break;
                             }
                         }
                         else {
                             var clonedItem = elem.loopTemplate.cloneNode(true);
                             deepCopyCustomAttributesAndEvents(clonedItem, elem.loopTemplate);
-                            if (isPrimitive(itemModel[key])) {
-                                if (curModel.__symElementIds && !curModel.__symElementIds[itemModel[key]]) {
-                                    curModel.__symElementIds[itemModel[key]] = [];
-                                }
-                                curModel.__symElementIds[itemModel[key]].push(clonedItem.__symElementId);
-                            } else {
-                                curModel.__symElementIds && curModel.__symElementIds.push(clonedItem.__symElementId);
-                            }
 
                             if (!clonedItem.model) {
                                 clonedItem.model = {};
@@ -620,12 +615,27 @@ if (!window.sym) {
                             //assign current model to list-item element
                             clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
                             clonedItem.__symModelKey = key;
+                            if (isPrimitive(itemModel[key])) {
+                                clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel
+                            }
+
+                            if (curModel.__symElementIds) {
+                                if (isPrimitive(itemModel[key])) {
+                                    if (!curModel.__symElementIds[index]) {
+                                        curModel.__symElementIds[index] = [];
+                                    }
+                                    curModel.__symElementIds[index].push(clonedItem.__symElementId);
+                                } else {
+                                    curModel.__symElementIds.push(clonedItem.__symElementId);
+                                }
+                            }
 
                             //append list item to element
                             elem.appendChild(clonedItem);
                             createModelScope(clonedItem);
                             deepRenderAttrAndText(clonedItem);
                         }
+                        index++;
                     }
 
                     //if this list has item, it needs to be deleted from DOM
@@ -680,8 +690,7 @@ if (!window.sym) {
                 //text node needs to be updated, so trigger custom event
                 elem.dispatchEvent(renderTextNodeEvent);
             }
-            createItemList(elem);
-
+            renderItemList(elem);
             defineGettersAndSetters(elem);
         }
 
@@ -694,8 +703,15 @@ if (!window.sym) {
             //addEventListeners(elem, elem.symEvents);
 
             if (elem.tagName === 'SELECT') {
-                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue, elem.model);
+                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue.value, elem.model);
             }
+        }
+
+        function deepRenderItemList(elem) {
+            for (var i = 0; i < elem.childNodes.length; i++) {
+                deepRenderItemList(elem.childNodes[i]);
+            }
+            renderItemList(elem, true);
         }
 
         //single render element on model change
@@ -711,6 +727,7 @@ if (!window.sym) {
                         var attr = elem.attributes[attrName],
                             nakedValue = elem.attributes['__naked' + attrName];
                         if (isTemplateSyntax(nakedValue)) {
+                            setBoundElements(nakedValue, elem, elem.__symElementId, attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (attrName === 'value') {
                                 elem.value = attr.value;
@@ -789,16 +806,16 @@ if (!window.sym) {
             }
 
             return {
-                refresh: function (updateElem) {
-                    if (updateElem instanceof Node) {
-                        deepRenderAttrAndText(updateElem);
+                refreshList: function (refreshElem) {
+                    if (refreshElem instanceof Node) {
+                        deepRenderItemList(refreshElem);
                     }
-                    else if (typeof updateElem === 'string') {
-                        updateElem = document.getElementById(updateElem);
-                        deepRenderAttrAndText(updateElem);
+                    else if (typeof refreshElem === 'string') {
+                        refreshElem = document.getElementById(refreshElem);
+                        deepRenderItemList(refreshElem);
                     }
                     else {
-                        deepRenderAttrAndText(container);
+                        deepRenderItemList(container);
                     }
                 },
                 updateModel: function (modelName, model) {
@@ -808,6 +825,7 @@ if (!window.sym) {
                         }
                         elem.model[modelName] = model;
                         createModelScope(elem, true);
+                        deepRenderAttrAndText(container);
                     }
                 }
             }
