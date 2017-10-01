@@ -651,7 +651,7 @@ if (!window.sym) {
                                 else {
                                     var curKeys = Object.keys(curModel.__symElementIds);
                                     var foundKeys = curKeys.filter(function (k) {
-                                        return k.startsWith(index + '_');
+                                        return ~k.indexOf(index + '_');
                                     });
                                     if (foundKeys.length > 0) {
                                         delete curModel.__symElementIds[foundKeys[0]];
