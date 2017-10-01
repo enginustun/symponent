@@ -13,6 +13,11 @@ if (!window.sym) {
     function replaceAll(str, find, replace) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
+    function swap(list, x, y) {
+        var b = list[y];
+        list[y] = list[x];
+        list[x] = b;
+    }
 
     //creates and return HTML Node from string
     function htmlFromString(s) {
@@ -557,27 +562,47 @@ if (!window.sym) {
             }
         }
 
+        //clones loop template. it is used when a new element is added to list.
+        function cloneLoopTemplate(elem, curModel, itemModel, key, index) {
+            var clonedItem = elem.loopTemplate.cloneNode(true);
+            deepCopyCustomAttributesAndEvents(clonedItem, elem.loopTemplate);
+
+            if (!clonedItem.model) {
+                clonedItem.model = {};
+            }
+            //assign current model to list-item element
+            clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
+            clonedItem.__symModelKey = key;
+            if (isPrimitive(itemModel[key])) {
+                clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel
+            }
+
+            //creates a list if it is not exists in model, adds unique __symElementId to that list
+            if (curModel.__symElementIds) {
+                if (isPrimitive(itemModel[key])) {
+                    if (!curModel.__symElementIds[index + '_' + itemModel[key]]) {
+                        curModel.__symElementIds[index + '_' + itemModel[key]] = [];
+                    }
+                    curModel.__symElementIds[index + '_' + itemModel[key]].push(clonedItem.__symElementId);
+                } else {
+                    curModel.__symElementIds.push(clonedItem.__symElementId);
+                }
+            }
+            return clonedItem;
+        }
+
         //checks, creates or removes items for repeatable elements. also creates model scope of each loop items.
         function renderItemList(elem, renderSelf) {
             if (elem.loopTemplate) {
-                var itemModel = elem.loopTemplate.loopModel.list,
-                    oldRenderedList = {};
+                var itemModel = elem.loopTemplate.loopModel.list;
 
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
-
-                    //if element has child nodes, keep them to compare to decide whether it needs to be deleted or not
-                    for (var i = 0; i < elem.childNodes.length; i++) {
-                        if (!isTextNode(elem.childNodes[i])) {
-                            var elemId = elem.childNodes[i].__symElementId;
-                            oldRenderedList[elemId] = elem.childNodes[i];
-                        }
-                    }
-                    var index = 0
+                    var index = 0,
+                        preRenderedCount = elem.childNodes.length;
                     for (var key in itemModel) {
-                        //if current itemModel element's type is string, wrap this element by String, 
-                        //because we need to keep __symElementId value in its attribute.
-                        var curModel = itemModel[key];
-                        if (isPrimitive(curModel)) {
+                        var curModel = itemModel[key],
+                            isCurModelPrimitive = isPrimitive(curModel);
+                        if (isCurModelPrimitive) {
                             curModel = itemModel;
                         }
                         if (!curModel.__symElementIds) {
@@ -587,60 +612,67 @@ if (!window.sym) {
                                 writable: true
                             });
                         }
-                        var anyPreRenderedFound = [];
-                        if (curModel.__symElementIds) {
-                            var symElemSearchList = curModel.__symElementIds;
-                            if (isPrimitive(itemModel[key])) {
-                                symElemSearchList = curModel.__symElementIds[index] || [];
-                            }
-                            anyPreRenderedFound = symElemSearchList.filter(function (id) {
-                                return oldRenderedList[id];
-                            });
-                        }
-                        //if this condition will be matched then no need to clone and append new element, it already exists 
-                        if (anyPreRenderedFound.length > 0) {
-                            for (var i = 0; i < anyPreRenderedFound.length; i++) {
-                                var foundedId = anyPreRenderedFound[i];
-                                delete oldRenderedList[foundedId];
-                                break;
-                            }
-                        }
-                        else {
-                            var clonedItem = elem.loopTemplate.cloneNode(true);
-                            deepCopyCustomAttributesAndEvents(clonedItem, elem.loopTemplate);
 
-                            if (!clonedItem.model) {
-                                clonedItem.model = {};
-                            }
-                            //assign current model to list-item element
-                            clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
-                            clonedItem.__symModelKey = key;
-                            if (isPrimitive(itemModel[key])) {
-                                clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel
-                            }
+                        //preRenderedCount means that count of elements which are rendered according to model before
+                        if (index < preRenderedCount) {
+                            var curChild = elem.childNodes[index],
+                                needToRerender = false,
+                                indexOfSymElement = -1;
 
-                            if (curModel.__symElementIds) {
-                                if (isPrimitive(itemModel[key])) {
-                                    if (!curModel.__symElementIds[index]) {
-                                        curModel.__symElementIds[index] = [];
-                                    }
-                                    curModel.__symElementIds[index].push(clonedItem.__symElementId);
-                                } else {
-                                    curModel.__symElementIds.push(clonedItem.__symElementId);
+                            //at least the order of list might be changed.
+                            if (isCurModelPrimitive) {
+                                //trying to decide that whether the list is changed or not.
+                                if (curModel.__symElementIds[index + '_' + itemModel[key]]) {
+                                    indexOfSymElement = curModel.__symElementIds[index + '_' + itemModel[key]].indexOf(curChild.__symElementId);
+                                    needToRerender = (indexOfSymElement === -1);
                                 }
+                                else {
+                                    var curKeys = Object.keys(curModel.__symElementIds);
+                                    var foundKeys = curKeys.filter(function (k) {
+                                        return k.startsWith(index + '_');
+                                    });
+                                    if (foundKeys.length > 0) {
+                                        delete curModel.__symElementIds[foundKeys[0]];
+                                    }
+                                    needToRerender = true;
+                                }
+                            } else {
+                                indexOfSymElement = curModel.__symElementIds.indexOf(curChild.__symElementId);
+                                needToRerender = (indexOfSymElement === -1);
+                            }
+                            if (needToRerender) { //if rerendering is necessary, current element is replaced with newly created element.
+                                var clonedItem = cloneLoopTemplate(elem, curModel, itemModel, key, index);
+                                var delIndex = -1;
+                                if (curChild.model) {
+                                    for (var innerModelName in curChild.model) {
+                                        if (curChild.model.hasOwnProperty(innerModelName)) {
+                                            var innerModel = curChild.model[innerModelName];
+                                            if (Array.isArray(innerModel.__symElementIds)) {
+                                                delIndex = innerModel.__symElementIds.indexOf(curChild.__symElementId);
+                                            }
+                                            innerModel.__symElementIds.splice(delIndex, 1);
+                                        }
+                                    }
+                                }
+                                createModelScope(clonedItem);
+                                deepRenderAttrAndText(clonedItem);
+                                curChild.parentNode.replaceChild(clonedItem, curChild);
                             }
 
-                            //append list item to element
+                        } else { //initially preRenderedCount equals to 0, new elements are rendered according to model
+                            var clonedItem = cloneLoopTemplate(elem, curModel, itemModel, key, index);
+                            
                             elem.appendChild(clonedItem);
                             createModelScope(clonedItem);
                             deepRenderAttrAndText(clonedItem);
                         }
                         index++;
                     }
-
-                    //if this list has item, it needs to be deleted from DOM
-                    for (var symId in oldRenderedList) {
-                        oldRenderedList[symId].parentNode.removeChild(oldRenderedList[symId]);
+                    //loop through difference between preRenderedCount and current index which equals to list's length in model
+                    for (var i = 0; i < preRenderedCount - index; i++) {
+                        //if this difference is greater than zero, previously rendered element should be removed from screen.
+                        var preElem = elem.childNodes[preRenderedCount - i - 1];
+                        preElem.parentNode.removeChild(preElem);
                     }
                 }
             }
@@ -694,24 +726,24 @@ if (!window.sym) {
             defineGettersAndSetters(elem);
         }
 
-        //this method will be used to refresh component
+        //re-renders elements specified. it is being used while creating components, re-rendering lists etc.
         function deepRenderAttrAndText(elem) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 deepRenderAttrAndText(elem.childNodes[i]);
             }
             renderAttributesAndText(elem);
-            //addEventListeners(elem, elem.symEvents);
-
-            if (elem.tagName === 'SELECT') {
-                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue.value, elem.model);
-            }
         }
 
+        //re-renders lists
         function deepRenderItemList(elem) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 deepRenderItemList(elem.childNodes[i]);
             }
             renderItemList(elem, true);
+
+            if (elem.tagName === 'SELECT') {
+                elem.value = findAndReplaceExecResult(elem, elem.attributes.__nakedvalue, elem.model);
+            }
         }
 
         //single render element on model change
