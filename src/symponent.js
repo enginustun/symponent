@@ -55,6 +55,7 @@ if (!window.sym) {
             allowedAttrNameStart = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD',
             allowedAttrName = allowedAttrNameStart + '\\-.0-9\\uB7\\u0300-\\u036F\\u203F-\\u2040',
             isCustomAttribute = RegExp.prototype.test.bind(new RegExp('^(data|aria)-[' + allowedAttrName + ']*$')),
+            observableArrayMethods = ['concat', 'copyWithin', 'push', 'pop', 'reduce', 'reduceRight', 'reverse', 'shift', 'unshift', 'slice', 'some', 'sort', 'splice'],
             allowedElements = {
                 a: true,
                 abbr: true,
@@ -591,11 +592,32 @@ if (!window.sym) {
             return clonedItem;
         }
 
+        //makes arrays observable. if any changes on arrays through array methods, list will be re-rendered.
+        function makeArrayObservable(model, elem) {
+            if (Array.isArray(model) && !model.__symObservable) {
+                Object.defineProperty(model, '__symObservable', { value: true });
+                for (var i = 0; i < observableArrayMethods.length; i++) {
+                    // var methodName = observableArrayMethods[i];
+                    (function (methodName) {
+                        if (Array.prototype[methodName]) {
+                            Object.defineProperty(model, methodName, {
+                                value: function () {
+                                    var result = Array.prototype[methodName].apply(this, arguments);
+                                    deepRenderItemList(elem);
+                                    return result;
+                                }
+                            });
+                        }
+                    })(observableArrayMethods[i]);
+                }
+            }
+        }
+
         //checks, creates or removes items for repeatable elements. also creates model scope of each loop items.
         function renderItemList(elem, renderSelf) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list;
-
+                makeArrayObservable(itemModel, elem);
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
                     var index = 0,
                         preRenderedCount = elem.childNodes.length;
@@ -661,7 +683,7 @@ if (!window.sym) {
 
                         } else { //initially preRenderedCount equals to 0, new elements are rendered according to model
                             var clonedItem = cloneLoopTemplate(elem, curModel, itemModel, key, index);
-                            
+
                             elem.appendChild(clonedItem);
                             createModelScope(clonedItem);
                             deepRenderAttrAndText(clonedItem);
