@@ -832,6 +832,12 @@ if (!window.sym) {
             }
             if (elem.loopTemplate) {
                 if (elem.loopTemplate.loopModel && elem.loopTemplate.loopModel.list && isTemplateSyntax(elem.loopTemplate.loopModel.list)) {
+                    for (var curModelName in elem.model) {
+                        if (elem.model.hasOwnProperty(curModelName)) {
+                            var element = elem.model[curModelName];
+                            eval('var ' + curModelName + ' = elem.model[curModelName];');
+                        }
+                    }
                     elem.loopTemplate.loopModel.list = eval(elem.loopTemplate.loopModel.list);
                 }
                 defineEmptySetter(elem, 'loopTemplate');
