@@ -617,6 +617,16 @@ if (!window.sym) {
         function renderItemList(elem, renderSelf) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list;
+                
+                //itemModel needs to be evaluated if it contains template syntax.
+                if (isTemplateSyntax(itemModel)) {
+                    while ((execResult = weedOutReg.exec(itemModel)) !== null) {
+                        var propertyName = execResult[1],
+                            modelName = execResult[0].replace(propertyName, '');
+                        itemModel = eval('elem.model[modelName]' + propertyName);
+                    } 
+                }
+                
                 makeArrayObservable(itemModel, elem);
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
                     var index = 0,
@@ -830,16 +840,8 @@ if (!window.sym) {
             if (elem.model && isTemplateSyntax(elem.model)) {
                 elem.model = eval(elem.model);
             }
+
             if (elem.loopTemplate) {
-                if (elem.loopTemplate.loopModel && elem.loopTemplate.loopModel.list && isTemplateSyntax(elem.loopTemplate.loopModel.list)) {
-                    for (var curModelName in elem.model) {
-                        if (elem.model.hasOwnProperty(curModelName)) {
-                            var element = elem.model[curModelName];
-                            eval('var ' + curModelName + ' = elem.model[curModelName];');
-                        }
-                    }
-                    elem.loopTemplate.loopModel.list = eval(elem.loopTemplate.loopModel.list);
-                }
                 defineEmptySetter(elem, 'loopTemplate');
                 if (elem.loopTemplate.loopModel) {
                     defineEmptySetter(elem.loopTemplate, 'loopModel');
