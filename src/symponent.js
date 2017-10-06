@@ -617,16 +617,16 @@ if (!window.sym) {
         function renderItemList(elem, renderSelf) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list;
-                
+
                 //itemModel needs to be evaluated if it contains template syntax.
                 if (isTemplateSyntax(itemModel)) {
                     while ((execResult = weedOutReg.exec(itemModel)) !== null) {
                         var propertyName = execResult[1],
                             modelName = execResult[0].replace(propertyName, '');
                         itemModel = eval('elem.model[modelName]' + propertyName);
-                    } 
+                    }
                 }
-                
+
                 makeArrayObservable(itemModel, elem);
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
                     var index = 0,
@@ -741,11 +741,14 @@ if (!window.sym) {
                         elem.removeAttribute('checked');
                     }
                     if ('render' in elem.attributes) {
-                        if (elem.attributes.render.value !== 'true') {
-                            elem.style.display = 'none';
+                        if (!elem.commentNode) {
+                            elem.commentNode = document.createComment('sym-render');
                         }
-                        else {
-                            elem.style.display = 'initial';
+                        if (elem.attributes.render.value !== 'true') {
+                            elem.parentNode.replaceChild(elem.commentNode, elem);
+                        }
+                        else if (elem.commentNode.parentNode) {
+                            elem.commentNode.parentNode.replaceChild(elem, elem.commentNode);
                         }
                     }
                 }
@@ -802,11 +805,14 @@ if (!window.sym) {
                             elem.removeAttribute(attrName);
                         }
                         if (attrName === 'render') {
+                            if (!elem.commentNode) {
+                                elem.commentNode = document.createComment('sym-render');
+                            }
                             if (elem.attributes.render.value !== 'true') {
-                                elem.style.display = 'none';
+                                elem.parentNode.replaceChild(elem.commentNode, elem);
                             }
                             else {
-                                elem.style.display = 'initial';
+                                elem.commentNode.parentNode.replaceChild(elem, elem.commentNode);
                             }
                         }
                     }
