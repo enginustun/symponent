@@ -13,11 +13,6 @@ if (!window.sym) {
     function replaceAll(str, find, replace) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
-    function swap(list, x, y) {
-        var b = list[y];
-        list[y] = list[x];
-        list[x] = b;
-    }
 
     //creates and return HTML Node from string
     function htmlFromString(s) {
