@@ -733,7 +733,6 @@ if (!window.sym) {
                     }
                     if (removeChecked) {
                         elem.checked = false;
-                        elem.removeAttribute('checked');
                     }
                     if ('render' in elem.attributes) {
                         if (!elem.commentNode) {
@@ -797,7 +796,6 @@ if (!window.sym) {
                         }
                         if (attrName === 'checked' && !(attr.value === 'true')) {
                             elem.checked = false;
-                            elem.removeAttribute(attrName);
                         }
                         if (attrName === 'render') {
                             if (!elem.commentNode) {
