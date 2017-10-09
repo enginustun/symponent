@@ -14,6 +14,24 @@ if (!window.sym) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
 
+    //returns deeper object, 
+    //ex: obj = { name: 'engin', accounts: { creditCard: {...}, payrollCard: {...} } }; 
+    //getObjectByString(obj, 'accounts.creditCard');  >>>>  ***** returns creditCard: {...} *****
+    function getObjectByString(o, s) {
+        s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+        s = s.replace(/^\./, '');           // strip a leading dot
+        var a = s.split('.');
+        for (var i = 0, n = a.length; i < n; ++i) {
+            var k = a[i];
+            if (k in o) {
+                o = o[k];
+            } else {
+                return;
+            }
+        }
+        return o;
+    };
+
     //creates and return HTML Node from string
     function htmlFromString(s) {
         var div = document.createElement('div');
@@ -470,6 +488,32 @@ if (!window.sym) {
             }
         }
 
+        //defines special properties, the heart of library
+        function defineGetterAndStter(model, propName, propValue) {
+            Object.defineProperty(model, '__sym' + propName, {
+                enumerable: false,
+                value: propValue,
+                writable: true
+            });
+            Object.defineProperty(model, propName,
+                {
+                    get: function () { return model['__sym' + propName] },
+                    set: function (val) {
+                        var oldVal = model['__sym' + propName];
+                        model['__sym' + propName] = val;
+                        if (oldVal != val) {
+                            if (model && model.__symBound && isIterable(model.__symBound[propName])) {
+                                for (var curId in model.__symBound[propName]) {
+                                    var curBoundElemProps = model.__symBound[propName][curId];
+                                    renderAttributeOrText(curBoundElemProps.elem, curBoundElemProps.attributes);
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
         //recursive helper function of defineGettersAndSetters, actually all work is done here 
         function defineGettersAndSettersHelper(model, elem) {
             if (isIterable(model) && !model.__isRendered) {
@@ -482,28 +526,7 @@ if (!window.sym) {
                                 defineGettersAndSettersHelper(modelProp, elem);
                             }
                             else if (isPrimitive(modelProp)) {
-                                Object.defineProperty(model, '__sym' + propName, {
-                                    enumerable: false,
-                                    value: modelProp,
-                                    writable: true
-                                });
-                                Object.defineProperty(model, propName,
-                                    {
-                                        get: function () { return model['__sym' + propName] },
-                                        set: function (val) {
-                                            var oldVal = model['__sym' + propName];
-                                            model['__sym' + propName] = val;
-                                            if (oldVal != val) {
-                                                if (model && model.__symBound && isIterable(model.__symBound[propName])) {
-                                                    for (var curId in model.__symBound[propName]) {
-                                                        var curBoundElemProps = model.__symBound[propName][curId];
-                                                        renderAttributeOrText(curBoundElemProps.elem, curBoundElemProps.attributes);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                );
+                                defineGetterAndStter(model, propName, modelProp);
                             }
                         }
                     }(propName));
@@ -530,7 +553,9 @@ if (!window.sym) {
                 var propertyName = execResult[1],
                     modelName = execResult[0].replace(propertyName, '');
                 propertyName = propertyName.substr(1);
-                var model = eval('elem.model.' + modelName);
+                //model will be parsed from string rather than eval function
+                var model = getObjectByString(elem.model, modelName);
+
                 //define bound elements' container object
                 if (!model.hasOwnProperty('__symBound')) {
                     Object.defineProperty(model, '__symBound', {
@@ -540,6 +565,10 @@ if (!window.sym) {
                     });
                 }
 
+                //when model is sent to library which has no attribute named 'propertyName', getter and setter must be defined for undefined value
+                if (model && !model.hasOwnProperty(propertyName)) {
+                    defineGetterAndStter(model, propertyName, undefined);
+                }
                 if (!model.__symBound[propertyName]) {
                     model.__symBound[propertyName] = {};
                 }
@@ -618,7 +647,7 @@ if (!window.sym) {
                     while ((execResult = weedOutReg.exec(itemModel)) !== null) {
                         var propertyName = execResult[1],
                             modelName = execResult[0].replace(propertyName, '');
-                        itemModel = eval('elem.model[modelName]' + propertyName);
+                        itemModel = getObjectByString(elem.model[modelName], propertyName);
                     }
                 }
 
