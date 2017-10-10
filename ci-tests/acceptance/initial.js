@@ -3,7 +3,7 @@ import { Selector } from 'testcafe';
 
 fixture('Initial').page('http://localhost:1337/');
 
-test('The created element is instance of HTMLDivElement.', async (t) => {
-    var divElement = sym.createElement('div');
-    await t.expect(divElement.toString()).eql('[object HTMLDivElement]');
+test('post-add-form should be rendered only add button is clicked.', async (t) => {
+    await t.expect(Selector('.post-add-form-container .post-add-form').length == 0);
+    await t.click(Selector('.post-add-form-container > button')).expect(Selector('.post-add-form-container .post-add-form').length > 0);
 });
