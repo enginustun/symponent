@@ -1,0 +1,146 @@
+body{
+  background: #fff;
+  color: #2C3E50;
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+.clearfix{
+  clear: both;
+}
+
+.content{
+  width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.menu-container{
+  border-bottom: 1px solid #ddd;
+}
+
+.menu-container nav{
+  width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.menu-container ul{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-container ul li{
+  display: inline-block;
+}
+
+.menu-container ul li a{
+  display: block;
+  text-decoration: none;
+  padding: 8px;
+  color: #2C3E50;
+}
+
+.menu-container ul li a:hover{
+  background: #efefef;
+}
+
+.menu-container ul li a.active{
+  background: #efe;
+  font-weight: bold;
+}
+
+.posts-container{
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.post-item{
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.post-item:last-child{
+  border-bottom: none;
+}
+
+.post-item a{
+  text-decoration: none;
+  color: #2C3E50;
+}
+
+.post-item a:hover{
+  text-decoration: underline;
+}
+
+.up-button{
+  user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  padding: 3px;
+  margin-right: 5px;
+}
+
+.up-button:hover{
+  cursor: pointer;
+  background: #efe;
+}
+
+.up-button:active{
+  cursor: pointer;
+  background: #eee;
+}
+
+.post-add-form-container{
+  margin-top: 10px;
+}
+
+.post-add-form-container button{
+  float: right;
+}
+
+.post-add-form{
+  padding: 10px;
+  background: #efe;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+}
+
+.close{
+  float: right;
+  display: block;
+  padding: 5px;
+  font-weight: bold;
+  font-size: 1em;
+  position: relative;
+  color: #ccc;
+  top: -12px;
+  right: -5px;
+  z-index: 1;
+}
+
+.close:hover{
+  cursor: pointer;
+  color: #999;
+}
+
+.form-group{
+  position: relative;
+  margin-bottom: 5px;
+}
+
+.form-group label{
+  min-width: 100px;
+  display: inline-block;
+}
+
+.form-group input{
+  display: inline-block;
+  padding: 3px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}

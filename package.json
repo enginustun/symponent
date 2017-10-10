@@ -1,0 +1,21 @@
+{
+  "name": "symponent",
+  "description": "The \"almost-automatic JavaScript UI library\" that allows you to create reactive UIs incredibly fast.",
+  "license": "MIT",
+  "author": {
+    "name": "Engin Üstün",
+    "url": "http://symponent.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muendiz/symponent.git"
+  },
+  "scripts": {
+    "test:acceptance": "testcafe chrome,firefox ci-tests/acceptance/ --app 'http-server src-with-demos/ -p 1337 -s'",
+    "test": "npm run test:acceptance"
+  },
+  "devDependencies": {
+    "http-server": "^0.10.0",
+    "testcafe": "^0.18.0"
+  }
+}
