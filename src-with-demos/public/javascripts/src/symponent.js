@@ -1,11 +1,33 @@
-/*!
+/**
  * Symponent.js
  * (c) 2017-Present Engin Üstün
  * Released under the MIT License.
  */
-//check if `sym` is already exists or not.
-if (!window.sym) {
-
+(function (f) {
+    if (typeof exports === "object" && typeof module !== "undefined") {
+        module.exports = f()
+    }
+    else if (typeof define === "function" && define.amd) {
+        define([], f)
+    }
+    else {
+        var g;
+        if (typeof window !== "undefined") {
+            g = window;
+        }
+        else if (typeof global !== "undefined") {
+            g = global;
+        }
+        else if (typeof self !== "undefined") {
+            g = self;
+        }
+        else {
+            g = this;
+        }
+        g.sym = f()
+    }
+})(function symponent() {
+    
     //helper functions
     function escapeRegExp(str) {
         return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
@@ -14,8 +36,8 @@ if (!window.sym) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
 
-    //returns deeper object, 
-    //ex: obj = { name: 'engin', accounts: { creditCard: {...}, payrollCard: {...} } }; 
+    //returns deeper object,
+    //ex: obj = { name: 'engin', accounts: { creditCard: {...}, payrollCard: {...} } };
     //getObjectByString(obj, 'accounts.creditCard');  >>>>  ***** returns creditCard: {...} *****
     function getObjectByString(o, s) {
         s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
@@ -63,7 +85,7 @@ if (!window.sym) {
     }
 
     // sym library
-    window.sym = (new function () {
+    return (new function () {
         var self = this,
             allowedAttrNameStart = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD',
             allowedAttrName = allowedAttrNameStart + '\\-.0-9\\uB7\\u0300-\\u036F\\u203F-\\u2040',
@@ -986,7 +1008,4 @@ if (!window.sym) {
             return { name: name, list: list };
         }
     }());
-} else {
-    console.error('There is already an object of window named sym.');
-    console.log('current `sym` object: ', window.sym);
-}
+});
