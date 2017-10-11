@@ -1,14 +1,16 @@
-# symponent - [![Build Status](https://travis-ci.org/muendiz/symponent.svg?branch=master)](https://travis-ci.org/muendiz/symponent) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/muendiz/symponent/master/LICENSE)
+# symponent - [![Build Status](https://travis-ci.org/muendiz/symponent.svg?branch=master)](https://travis-ci.org/muendiz/symponent) [![npm version](https://badge.fury.io/js/symponent.svg)](https://www.npmjs.com/package/symponent) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/muendiz/symponent/master/LICENSE)
 
-symponent is a JavaScript UI library that allows you to create reactive UIs with a very small learning curve.
-symponent does not use virtual DOM nor two-way data binding.
+Symponent is a JavaScript UI library that allows you to create reactive UIs easily and incredibly fast.
+It uses real DOM and two-way hash-mapped data binding with its innovative methods.
 It aims to render only related elements if it is necessary.
 
 ## Installation
 
-Basically insert script tag your html page.
+Basically insert one of script tags below to your html page.
 
-`<script src="src/symponent.js"></script>`
+`<script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src/symponent.js"></script>`  
+`<script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src/symponent.min.js"></script>`  
+`<script src="{yourFolderStructure}/symponent.js"></script>`
 
 ## Documentation
 
