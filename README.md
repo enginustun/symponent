@@ -1,4 +1,4 @@
-# symponent - [![Build Status](https://travis-ci.org/muendiz/symponent.svg?branch=master)](https://travis-ci.org/muendiz/symponent)
+# symponent - [![Build Status](https://travis-ci.org/muendiz/symponent.svg?branch=master)](https://travis-ci.org/muendiz/symponent) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/muendiz/symponent/master/LICENSE)
 
 symponent is a JavaScript UI library that allows you to create reactive UIs with a very small learning curve.
 symponent does not use virtual DOM nor two-way data binding.
