@@ -1,0 +1,16 @@
+{
+    "name": "symponent",
+    "version": "1.0.3",
+    "description": "The \"almost-automatic JavaScript UI library\" that allows you to create reactive UIs incredibly fast.",
+    "main": "symponent.js",
+    "license": "MIT",
+    "author": {
+      "name": "Engin Üstün",
+      "url": "http://symponent.org"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/muendiz/symponent.git"
+    }
+  }
+  

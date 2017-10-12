@@ -1,8 +1,6 @@
 {
-  "name": "symponent",
-  "version": "1.0.2",
+  "name": "symponent-tests",
   "description": "The \"almost-automatic JavaScript UI library\" that allows you to create reactive UIs incredibly fast.",
-  "main": "src-with-demos/public/src/symponent.js",
   "license": "MIT",
   "author": {
     "name": "Engin Üstün",
