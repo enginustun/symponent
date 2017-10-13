@@ -5,10 +5,10 @@
  */
 (function (f) {
     if (typeof exports === "object" && typeof module !== "undefined") {
-        module.exports = f()
+        module.exports = f();
     }
     else if (typeof define === "function" && define.amd) {
-        define([], f)
+        define([], f);
     }
     else {
         var g;
@@ -24,21 +24,48 @@
         else {
             g = this;
         }
-        g.sym = f()
+
+        /**@namespace sym */
+        g.sym = f();
     }
 })(function symponent() {
-    
-    //helper functions
+
+    /**
+     * Adds backslash (\) in front of the special characters for regexp.
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {string} str - String will be escaped.
+     */
     function escapeRegExp(str) {
         return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
     }
+
+    /**
+     * Replaces all matches of 'find' parameter with 'replace' parameter in 'str'.
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {string} str - String will be modified.
+     * @param {string} find - Find string
+     * @param {string} replace - Replace string
+     */
     function replaceAll(str, find, replace) {
         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
     }
 
-    //returns deeper object,
-    //ex: obj = { name: 'engin', accounts: { creditCard: {...}, payrollCard: {...} } };
-    //getObjectByString(obj, 'accounts.creditCard');  >>>>  ***** returns creditCard: {...} *****
+    /**
+     * Finds and returns deeper object by string parameter.
+     * @example 
+     * obj = { name: 'engin', accounts: { creditCard: {...}, payrollCard: {...} } };
+     * getObjectByString(obj, 'accounts.creditCard'); 
+     * //>> creditCard: {...}
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {Object} o - object will be searched for field in 's' parameter(s).
+     * @param {string} s - string nested field names in 'o' object.
+     */
     function getObjectByString(o, s) {
         s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
         s = s.replace(/^\./, '');           // strip a leading dot
@@ -54,23 +81,41 @@
         return o;
     };
 
-    //creates and return HTML Node from string
+    /**
+     * Creates and returns HTML Node from string parameter given.
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {string} s - HTML string.
+     */
     function htmlFromString(s) {
         var div = document.createElement('div');
         div.innerHTML = s;
         return div.firstChild;
     }
 
-    //check if value is primitive
+    /**
+     * Checks given parameter, whether its type is primitive or not.
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {*} value - Any value will be checked.
+     */
     function isPrimitive(value) {
         return (
             typeof value === 'string' ||
             typeof value === 'number' ||
             typeof value === 'boolean'
-        )
+        );
     }
 
-    //checks if object is array or json object. can it be iterated with forin loop?
+    /**
+     * Checks if object is array or JSON object. If it is so, it can be iterated with for-forin loops.
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {*} obj - Any object to check.
+     */
     function isIterable(obj) {
         if (obj) {
             var propType = Object.prototype.toString.call(obj);
@@ -79,12 +124,17 @@
         return false;
     }
 
-    //checks if passed element is Node and also its type is TEXT_NODE
+    /**
+     * Checks if passed parameter is Text Node.
+     * @memberOf sym
+     * @private
+     * @inner
+     * @param {Object} node - Parameter will be checked by its type.
+     */
     function isTextNode(node) {
         return (node instanceof Node && node.nodeType === Node.TEXT_NODE);
     }
 
-    // sym library
     return (new function () {
         var self = this,
             allowedAttrNameStart = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD',
@@ -387,17 +437,37 @@
             weedOutReg = /[a-zA-Z_$][0-9a-zA-Z_$]*([.][a-zA-Z_$][0-9a-zA-Z_$]*)+/g,
             execResult;
 
-        //it will be used to generate id for elements which has no id
+        /**
+         * Returns unique sequential ID string for each call.
+         * @memberOf sym
+         * @private
+         * @inner
+         */
         function generateId() {
             return idPrefix + idCounter++;
         }
 
-        //checks if str is renderable template syntax or not
+        /**
+         * Checks if 'str' parameter is renderable template syntax or not.
+         * @example 
+         * // {user}, {user.name}, {user.isAdmin?'yes':'no'}, ...
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {string} str - String parameter which will be checked.
+         */
         function isTemplateSyntax(str) {
-            return (typeof str === 'string' && ~str.indexOf('{') && ~str.indexOf('}'))
+            return (typeof str === 'string' && ~str.indexOf('{') && ~str.indexOf('}'));
         }
 
-        //adds event listeners to element
+        /**
+         * Adds given event listeners to 'elem'.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element to be modified.
+         * @param {Object[]} events - An array of events which will be bound to 'elem' DOM parameter.
+         */
         function addEventListeners(elem, events) {
             if (events) {
                 elem.symEvents = events;
@@ -412,7 +482,15 @@
             }
         }
 
-        //finds match by regex and replace matched key with its value in model
+        /**
+         * Finds model names, defines them as variables and evaluate template syntax in 'nakedValue' and returns it.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element to calculate $index.
+         * @param {string} nakedValue - Template Syntax value which bound to element before.
+         * @param {Object} models - 'elem's model.
+         */
         function findAndReplaceExecResult(elem, nakedValue, models) {
             var parsedValue = nakedValue;
             if (isTemplateSyntax(nakedValue)) {
@@ -444,11 +522,19 @@
             return parsedValue;
         }
 
-        //custom event definition for rendering text nodes.
+        // Custom event definition to render Text Nodes.
         var renderTextNodeEvent = document.createEvent('Event');
         renderTextNodeEvent.initEvent('renderTextNodeEvent', true, true);
 
-        //assigns "renderTextNodeEvent" to "TextNode" to update its value when it needs to be changed.
+        /**
+         * Assigns "renderTextNodeEvent" to "TextNode"s to update its value when it is necessary.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - TextNode element to add custom event.
+         * @param {string} elemId - Element's id to make it findable and unique.
+         * @param {string} nakedValue - Naked Template Syntax value as string.
+         */
         function addRenderTextNodeEventListener(elem, elemId, nakedValue) {
             elem.addEventListener('renderTextNodeEvent', function () {
                 setBoundElements(nakedValue, elem, elemId, 'innervalue');
@@ -456,7 +542,14 @@
             });
         }
 
-        //copies self defined attributes, templates, models etc. for cloned elements from template element
+        /**
+         * Copies self defined attributes, templates, models and etc. to cloned(new) elements from template(old) element.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} newElem - Newly created DOM element.
+         * @param {Object} oldElem - Old DOM element.
+         */
         function deepCopyCustomAttributesAndEvents(newElem, oldElem) {
             for (var i = 0; i < newElem.childNodes.length; i++) {
                 var newChild = newElem.childNodes[i],
@@ -487,7 +580,14 @@
             }
         }
 
-        //defines empty setter to properties which will be evaluated on rendering phase to avoid XSS attack and external interventions.
+        /**
+         * Defines empty setter to properties which will be evaluated on rendering phase to avoid XSS attack and external interventions.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} currentObject - Object to define empty getter and setter.
+         * @param {string} propKey - Property Key for getter and empty setter.
+         */
         function defineEmptySetter(currentObject, propKey) {
             var storedValue = currentObject[propKey];
             Object.defineProperty(currentObject, propKey,
@@ -500,7 +600,13 @@
             )
         }
 
-        //shows to get/set definitions of model are done
+        /**
+         * Defines to show whether get/set definitions are done or not.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} model - Model to define '__isRendered' property.
+         */
         function defineRenderedTrue(model) {
             if (!model.hasOwnProperty('__isRendered')) {
                 Object.defineProperty(model, '__isRendered', {
@@ -510,7 +616,15 @@
             }
         }
 
-        //defines special properties, the heart of library
+        /**
+         * Defines special properties to re-render UI when it is necessary according to bound properties.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} model - Model which is bound with one or more elements
+         * @param {string} propName - Property's name to define re-render logic.
+         * @param {string} propValue - Property's value to define re-render logic.
+         */
         function defineGetterAndStter(model, propName, propValue) {
             Object.defineProperty(model, '__sym' + propName, {
                 enumerable: false,
@@ -536,8 +650,14 @@
             );
         }
 
-        //recursive helper function of defineGettersAndSetters, actually all work is done here 
-        function defineGettersAndSettersHelper(model, elem) {
+        /**
+         * Recursive helper function of 'defineGettersAndSetters'.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} model - Element's data model.
+         */
+        function defineGettersAndSettersHelper(model) {
             if (isIterable(model) && !model.__isRendered) {
                 for (var propName in model) {
                     // IIFE
@@ -545,7 +665,7 @@
                         if (model.hasOwnProperty(propName)) {
                             var modelProp = model[propName];
                             if (isIterable(modelProp)) {
-                                defineGettersAndSettersHelper(modelProp, elem);
+                                defineGettersAndSettersHelper(modelProp);
                             }
                             else if (isPrimitive(modelProp)) {
                                 defineGetterAndStter(model, propName, modelProp);
@@ -557,19 +677,34 @@
             }
         }
 
-        //defines get and set functions of each property of element's models
+        /**
+         * Defines get amd set functions of element's model for each property.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element to define custom setter according to its models.
+         */
         function defineGettersAndSetters(elem) {
             if (!isTextNode(elem) && isIterable(elem.model)) {
                 for (var propName in elem.model) {
                     if (elem.model.hasOwnProperty(propName)) {
                         var modelProp = elem.model[propName];
-                        defineGettersAndSettersHelper(modelProp, elem);
+                        defineGettersAndSettersHelper(modelProp);
                     }
                 }
             }
         }
 
-        //binds elements and models
+        /**
+         * Binds elements and models together.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {string} nakedValue - Template Syntax containing string value to find model and its property name.
+         * @param {Object} elem - Related DOM elemnt.
+         * @param {string} elemId - DOM element's unique id (it is required because TextNode's custom attributes cannot read from element in IE).
+         * @param {string} attrName - Attribute name to bind model and attribute together.
+         */
         function setBoundElements(nakedValue, elem, elemId, attrName) {
             while ((execResult = weedOutReg.exec(nakedValue)) !== null) {
                 var propertyName = execResult[1],
@@ -609,7 +744,18 @@
             }
         }
 
-        //clones loop template. it is used when a new element is added to list.
+        /**
+         * Clones 'loopTemplate' while creating UI by iterating 'loopModel' list.
+         * Creates a cloned DOM element for 'curModel' from loopTemplate.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element which contains loopTemplate.
+         * @param {Object} curModel - Current model in iteration of list.
+         * @param {(Object | Object[])} itemModel - All items which is being iterated currently.
+         * @param {string} key - string key.
+         * @param {number} index - number index.
+         */
         function cloneLoopTemplate(elem, curModel, itemModel, key, index) {
             var clonedItem = elem.loopTemplate.cloneNode(true);
             deepCopyCustomAttributesAndEvents(clonedItem, elem.loopTemplate);
@@ -638,7 +784,14 @@
             return clonedItem;
         }
 
-        //makes arrays observable. if any changes on arrays through array methods, list will be re-rendered.
+        /**
+         * Makes arrays observable. If any change is occurred on arrays through array methods, list will be re-rendered.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object[]} model - Array object to make observable.
+         * @param {Object} elem - DOM element to re-render if any change is occurred in given array.
+         */
         function makeArrayObservable(model, elem) {
             if (Array.isArray(model) && !model.__symObservable) {
                 Object.defineProperty(model, '__symObservable', { value: true });
@@ -659,8 +812,14 @@
             }
         }
 
-        //checks, creates or removes items for repeatable elements. also creates model scope of each loop items.
-        function renderItemList(elem, renderSelf) {
+        /**
+         * Checks, creates or removes items for repeatable elements. Also creates model scope of each loop item.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - Parent DOM element which will be container of generated list from loopModel.
+         */
+        function renderItemList(elem) {
             if (elem.loopTemplate) {
                 var itemModel = elem.loopTemplate.loopModel.list;
 
@@ -756,7 +915,13 @@
             }
         }
 
-        //renders element's attributes and inner text
+        /**
+         * Renders element's attributes and inner text according to Template Syntax which is defined when creating.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element which will be rendered according to its bound model properties.
+         */
         function renderAttributesAndText(elem) {
             if (!isTextNode(elem)) {
                 if (elem.attributes) {
@@ -806,7 +971,13 @@
             defineGettersAndSetters(elem);
         }
 
-        //re-renders elements specified. it is being used while creating components, re-rendering lists etc.
+        /**
+         * Re-renders element specified with its children deeply.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element will be rendered.
+         */
         function deepRenderAttrAndText(elem) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 deepRenderAttrAndText(elem.childNodes[i]);
@@ -814,7 +985,13 @@
             renderAttributesAndText(elem);
         }
 
-        //re-renders lists
+        /**
+         * Renders iterable item list deeply.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element will be rendered as list.
+         */
         function deepRenderItemList(elem) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 deepRenderItemList(elem.childNodes[i]);
@@ -826,7 +1003,14 @@
             }
         }
 
-        //single render element on model change
+        /**
+         * Render element's Template Syntax containing attributes and inner text
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element will be rendered.
+         * @param {Object[]} attributes - attributes which need to be evaluated.
+         */
         function renderAttributeOrText(elem, attributes) {
             if (!isTextNode(elem)) {
                 if (elem.attributes) {
@@ -868,7 +1052,14 @@
             }
         }
 
-        //creates deeply model scope for element and its children
+        /**
+         * Creates model scope deeply for element and its children
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} elem - DOM element to create its model scope.
+         * @param {boolean} force - Forces to re-create 'model scpoe' if its value equals to true.
+         */
         function createModelScope(elem, force) {
             for (var i = 0; i < elem.childNodes.length; i++) {
                 var curChild = elem.childNodes[i];
@@ -903,7 +1094,14 @@
             defineEmptySetter(elem, 'model');
         }
 
-        //creates component Node and returns helper functions
+        /**
+         * Creates component and appends it to specified container. Returns object which contains helper functions.
+         * @memberOf sym
+         * @public
+         * @alias createComponent
+         * @param {Object} elem - DOM element will be placed into container.
+         * @param {Object|string} - Container DOM element or its string id selector.
+         */
         self.createComponent = function (elem, container) {
             if (typeof container === 'string') {
                 container = document.getElementById(container);
@@ -916,8 +1114,16 @@
                 createModelScope(elem);
                 deepRenderAttrAndText(container);
             }
-
+            /**
+             * @namespace sym.createComponent
+             */
             return {
+                /**
+                 * Refreshes DOM UI after if model list is changed.
+                 * @memberOf sym.createComponent#
+                 * @public
+                 * @param {Object|string} refreshElem - DOM Node object or selector id as string to refresh list on UI.
+                 */
                 refreshList: function (refreshElem) {
                     if (refreshElem instanceof Node) {
                         deepRenderItemList(refreshElem);
@@ -930,6 +1136,13 @@
                         deepRenderItemList(container);
                     }
                 },
+                /**
+                 * Updates element's model and automatically refreshes it.
+                 * @memberOf sym.createComponent#
+                 * @public
+                 * @param {string} modelName - Name of model which will be updated.
+                 * @param {Object} model - New model to update.
+                 */
                 updateModel: function (modelName, model) {
                     if (model) {
                         if (!elem.model) {
@@ -943,7 +1156,14 @@
             }
         }
 
-        //creates elements' DOM without rendering
+        /**
+         * Creates DOM element with given tagName and attributes.
+         * @memberOf sym
+         * @public
+         * @alias createElement
+         * @param {string} tagName - Name of HTML tag which will be created.
+         * @param {Object[]} attrs - Attributes to assign to created element.
+         */
         self.createElement = function (tagName, attrs) {
             var childList = Array.prototype.slice.call(arguments, 2),
                 elem;
@@ -1003,7 +1223,14 @@
             return elem;
         }
 
-        //creates loop model with passed list. it will be used to create repeated list as loopModel.
+        /**
+         * Creates loop model with given list. The list will be used to create repeated list as loopModel.
+         * @memberOf sym
+         * @public
+         * @alias createLoopModel
+         * @param {string} name - Parameter name to use for each item in list when iterating it.
+         * @param {Object[]} list - Array to use when creating repetitive lists.
+         */
         self.createLoopModel = function (name, list) {
             return { name: name, list: list };
         }

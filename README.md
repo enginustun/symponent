@@ -14,7 +14,8 @@ Basically insert one of script tags below to your html page.
 
 ## Documentation
 
-See [muendiz.github.io/symponent](https://muendiz.github.io/symponent/).
+Symponent API: see [api.symponent.org](http://api.symponent.org)  
+Usage of library: see [symponent.org](http://symponent.org).
 
 Also you can check online demos;
 * [User Posts Example](http://posts-example.symponent.org/)  
