@@ -1323,7 +1323,9 @@
                                 elem.commentNode = document.createComment('sym-render');
                             }
                             if (elem.attributes.render.value !== 'true') {
-                                elem.parentNode.replaceChild(elem.commentNode, elem);
+                                if (elem.parentNode) {
+                                    elem.parentNode.replaceChild(elem.commentNode, elem);
+                                }
                             }
                             else {
                                 elem.commentNode.parentNode.replaceChild(elem, elem.commentNode);
