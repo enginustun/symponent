@@ -8,8 +8,8 @@ It aims to render only related elements if it is necessary.
 
 Basically insert one of script tags below to your html page.
 
-`<script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src/symponent.js"></script>`  
-`<script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src/symponent.min.js"></script>`  
+`<script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src-with-demos/public/javascripts/src/symponent.js"></script>`  
+`<script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src-with-demos/public/javascripts/src/symponent.min.js"></script>`  
 `<script src="{yourFolderStructure}/symponent.js"></script>`
 
 ## Documentation
@@ -18,7 +18,8 @@ Symponent API: see [api.symponent.org](http://api.symponent.org)
 Usage of library: see [symponent.org](http://symponent.org).
 
 Also you can check online demos;
-* [User Posts Example](http://posts-example.symponent.org/)  
+* [User Posts Example](http://examples.symponent.org/)  
+* [SVG Example](http://examples.symponent.org/svg.html)  
 * ...
 
 ## License
