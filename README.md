@@ -1,8 +1,7 @@
 # symponent - [![Build Status](https://travis-ci.org/muendiz/symponent.svg?branch=master)](https://travis-ci.org/muendiz/symponent) [![npm version](https://badge.fury.io/js/symponent.svg)](https://www.npmjs.com/package/symponent) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/muendiz/symponent/master/LICENSE)
 
-Symponent is a JavaScript UI library that allows you to create reactive UIs easily and incredibly fast.
-It uses real DOM and two-way hash-mapped data binding with its innovative methods.
-It aims to render only related elements if it is necessary.
+Symponent is a JavaScript UI library that allows you to create interactive user interfaces easily and incredibly fast.  
+It uses real DOM and one-way hash-mapped data binding with its innovative methods. If any attribute of model changes, UI is updated according to this attribute. It aims to render only related elements if it is necessary.
 
 ## Installation
 

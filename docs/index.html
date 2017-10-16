@@ -102,9 +102,11 @@
                     <div class="section-linker" id="introduction"></div>
                     <h2 class="page-header"><a href="#introduction">Introduction</a></h2>
                     <p class="lead">
-                        <strong>sym</strong>ponent is a light-weight but very powerful JavaScript UI library that allows
-                        you to create reactive UIs with a very small learning curve. <br/> It aims to render only related
-                        elements if it is necessary.
+                        <strong>sym</strong>ponent is a JavaScript UI library that allows you to create interactive user interfaces easily and 
+                        incredibly fast. <br/>
+                        It uses real DOM and one-way hash-mapped data binding with its innovative methods. If any attribute
+                        of model changes, UI is updated according to this attribute. It aims to render only related elements
+                        if it is necessary.
                     </p>
                 </section>
                 <div class="clearfix"></div>
@@ -204,6 +206,9 @@
                     <h3 id="usage-getting-started">Getting Started</h3>
                     <p class="lead">Include script tag you downloaded to your html page.</p>
                     <pre class="prettyprint"><code class="html">&lt;script src="{yourFolderStructure}/symponent.js"&gt;&lt;/script&gt;</code></pre>
+                    <p class="lead">or one of the following;</p>
+                    <pre class="prettyprint"><code class="html">&lt;script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src-with-demos/public/javascripts/src/symponent.js"&gt;&lt;/script&gt;</code></pre>
+                    <pre class="prettyprint"><code class="html">&lt;script src="https://cdn.jsdelivr.net/gh/muendiz/symponent@latest/src-with-demos/public/javascripts/src/symponent.min.js"&gt;&lt;/script&gt;</code></pre>
 
                     <!-- how it works -->
                     <div class="section-linker" id="usage-how-it-works"></div>
@@ -232,7 +237,7 @@
                         allowfullscreen="allowfullscreen" frameborder="0"></iframe>
                     <div class="callout callout-info">
                         <h4>Note</h4>
-                        <p>Please see <a href="#notYet">API documentation</a> for usage of these functions.<br/>
+                        <p>Please see <a href="http://api.symponent.org/sym.html">API documentation</a> for usage of these functions.<br/>
                             <code>sym.createComponent</code>
                             <code>sym.createElement</code>
                         </p>
@@ -248,8 +253,9 @@
                         allowfullscreen="allowfullscreen" frameborder="0"></iframe>
                     <div class="callout callout-info">
                         <h4>Note</h4>
-                        <p>Please see <a href="#notYet">API documentation</a> for usage of template syntax.<br/>
-                            <code>{modelName.propertyName}</code>
+                        <p>
+                            Template Syntax will be explained deeply. <br/>
+                            <code>{modelName.propertyName}</code> <code>{modelName.propertyName?"yes":"no"}</code> <code>{functionName(modelName.propertyName)}</code> etc.
                         </p>
                     </div>
 
@@ -273,7 +279,7 @@
                     </p>
                     <div class="callout callout-info">
                         <h4>Note</h4>
-                        <p class="lead">Please see <a href="#notYet">API documentation</a> for usage of events.<br/>
+                        <p class="lead">Usage of events will be explained deeply.<br/>
                             <pre class="prettyprint"><code class="javascript">events: {
     input: function(event, element){
         element.model.user.name = event.target.value;
