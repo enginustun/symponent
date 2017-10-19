@@ -174,7 +174,6 @@
             allowedAttrNameStart = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD',
             allowedAttrName = allowedAttrNameStart + '\\-.0-9\\uB7\\u0300-\\u036F\\u203F-\\u2040',
             isCustomAttribute = RegExp.prototype.test.bind(new RegExp('^(data|aria)-[' + allowedAttrName + ']*$')),
-            observableArrayMethods = ['concat', 'copyWithin', 'push', 'pop', 'reduce', 'reduceRight', 'reverse', 'shift', 'unshift', 'slice', 'some', 'sort', 'splice'],
             allowedElements = {
                 a: true,
                 abbr: true,
@@ -1034,7 +1033,7 @@
          * @param {string} key - string key.
          * @param {number} index - number index.
          */
-        function cloneLoopTemplate(elem, curModel, itemModel, key, index) {
+        function cloneLoopTemplate(elem, curModel, itemModel, key) {
             var clonedItem = elem.loopTemplate.cloneNode(true);
             deepCopyCustomAttributesAndEvents(clonedItem, elem.loopTemplate);
 
@@ -1044,22 +1043,29 @@
             //assign current model to list-item element
             clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
             clonedItem.__symModelKey = key;
-            if (isPrimitive(itemModel[key])) {
-                clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel
-            }
 
             //creates a list if it is not exists in model, adds unique __symElementId to that list
-            if (curModel.__symElementIds) {
-                if (isPrimitive(itemModel[key])) {
-                    if (!curModel.__symElementIds[index + '_' + itemModel[key]]) {
-                        curModel.__symElementIds[index + '_' + itemModel[key]] = [];
-                    }
-                    curModel.__symElementIds[index + '_' + itemModel[key]].push(clonedItem.__symElementId);
-                } else {
-                    curModel.__symElementIds.push(clonedItem.__symElementId);
-                }
+            if (curModel.__symElements) {
+                curModel.__symElements[clonedItem.__symElementId] = clonedItem;
             }
             return clonedItem;
+        }
+
+        /**
+         * Defines '__symElements' property for given model.
+         * @memberOf sym
+         * @private
+         * @inner 
+         * @param {Object} curModel - model object to define property.
+         */
+        function defineSymElementIdProperty(curModel) {
+            if (!curModel.__symElements) {
+                Object.defineProperty(curModel, '__symElements', {
+                    enumerable: false,
+                    value: {},
+                    writable: true
+                });
+            }
         }
 
         /**
@@ -1073,20 +1079,117 @@
         function makeArrayObservable(model, elem) {
             if (Array.isArray(model) && !model.__symObservable) {
                 Object.defineProperty(model, '__symObservable', { value: true });
-                for (var i = 0; i < observableArrayMethods.length; i++) {
-                    // var methodName = observableArrayMethods[i];
-                    (function (methodName) {
-                        if (Array.prototype[methodName]) {
-                            Object.defineProperty(model, methodName, {
-                                value: function () {
-                                    var result = Array.prototype[methodName].apply(this, arguments);
-                                    deepRenderItemList(elem);
-                                    return result;
-                                }
-                            });
+
+                Object.defineProperty(model, 'unshift', {
+                    value: function () {
+                        var oldLength = this.length;
+                        var result = Array.prototype.unshift.apply(this, arguments);
+                        for (var i = result - oldLength - 1; i >= 0; i--) {
+                            var curModel = this[i];
+                            if (isPrimitive(curModel)) {
+                                curModel = this;
+                            }
+                            defineSymElementIdProperty(curModel);
+
+                            var clonedItem = cloneLoopTemplate(elem, curModel, this, i);
+                            if (elem.childNodes.length == 0) {
+                                elem.appendChild(clonedItem);
+                            } else {
+                                elem.insertBefore(clonedItem, elem.firstChild);
+                            }
+
+                            createModelScope(clonedItem);
+                            deepRenderAttrAndText(clonedItem);
                         }
-                    })(observableArrayMethods[i]);
-                }
+                        return result;
+                    }
+                });
+
+                Object.defineProperty(model, 'shift', {
+                    value: function () {
+                        var result = Array.prototype.shift.apply(this, arguments);
+                        if (elem.firstChild) {
+                            elem.removeChild(elem.firstChild);
+                        }
+                        return result;
+                    }
+                });
+
+                Object.defineProperty(model, 'push', {
+                    value: function () {
+                        var oldLength = this.length;
+                        var result = Array.prototype.push.apply(this, arguments);
+                        for (var i = oldLength; i < result; i++) {
+                            var curModel = this[i];
+                            if (isPrimitive(curModel)) {
+                                curModel = this;
+                            }
+                            defineSymElementIdProperty(curModel);
+
+                            var clonedItem = cloneLoopTemplate(elem, curModel, this, i);
+                            elem.appendChild(clonedItem);
+                            createModelScope(clonedItem);
+                            deepRenderAttrAndText(clonedItem);
+                        }
+                        return result;
+                    }
+                });
+
+                Object.defineProperty(model, 'pop', {
+                    value: function () {
+                        var result = Array.prototype.pop.apply(this, arguments);
+                        if (elem.lastChild) {
+                            elem.removeChild(elem.lastChild);
+                        }
+                        return result;
+                    }
+                });
+
+                Object.defineProperty(model, 'splice', {
+                    value: function () {
+                        var result = Array.prototype.splice.apply(this, arguments);
+                        var delElems = [];
+                        for (var i = 0; i < result.length; i++) {
+                            var curModel = result[i];
+                            if (isPrimitive(curModel)) {
+                                curModel = this;
+                                var keys = Object.keys(curModel.__symElements);
+                                var curElem = curModel.__symElements[keys[i]];
+                                if (curElem.parentNode) {
+                                    curElem.parentNode.removeChild(curElem);
+                                }
+                                delete curModel.__symElements[keys[i]];
+                            }
+                            else {
+                                var keys = Object.keys(curModel.__symElements);
+                                for (var j = 0; j < keys.length; j++) {
+                                    var curElem = curModel.__symElements[keys[j]];
+                                    if (curElem.parentNode) {
+                                        curElem.parentNode.removeChild(curElem);
+                                    }
+                                    delete curModel.__symElements[keys[j]];
+                                }
+                            }
+                        }
+                        return result;
+                    }
+                });
+
+                Object.defineProperty(model, 'sort', {
+                    value: function () {
+                        var result = Array.prototype.sort.apply(this, arguments);
+                        deepRenderItemList(elem);
+                        return result;
+                    }
+                });
+
+                Object.defineProperty(model, 'reverse', {
+                    value: function () {
+                        var result = Array.prototype.reverse.apply(this, arguments);
+                        deepRenderItemList(elem);
+                        return result;
+                    }
+                });
             }
         }
 
@@ -1112,82 +1215,18 @@
 
                 makeArrayObservable(itemModel, elem);
                 if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
-                    var index = 0,
-                        preRenderedCount = elem.childNodes.length;
+                    elem.innerHTML = '';
                     for (var key in itemModel) {
-                        var curModel = itemModel[key],
-                            isCurModelPrimitive = isPrimitive(curModel);
-                        if (isCurModelPrimitive) {
+                        var curModel = itemModel[key];
+                        if (isPrimitive(curModel)) {
                             curModel = itemModel;
                         }
-                        if (!curModel.__symElementIds) {
-                            Object.defineProperty(curModel, '__symElementIds', {
-                                enumerable: false,
-                                value: [],
-                                writable: true
-                            });
-                        }
+                        defineSymElementIdProperty(curModel);
 
-                        //preRenderedCount means that count of elements which are rendered according to model before
-                        if (index < preRenderedCount) {
-                            var curChild = elem.childNodes[index],
-                                needToRerender = false,
-                                indexOfSymElement = -1;
-
-                            //at least the order of list might be changed.
-                            if (isCurModelPrimitive) {
-                                //trying to decide that whether the list is changed or not.
-                                if (curModel.__symElementIds[index + '_' + itemModel[key]]) {
-                                    indexOfSymElement = curModel.__symElementIds[index + '_' + itemModel[key]].indexOf(curChild.__symElementId);
-                                    needToRerender = (indexOfSymElement === -1);
-                                }
-                                else {
-                                    var curKeys = Object.keys(curModel.__symElementIds);
-                                    var foundKeys = curKeys.filter(function (k) {
-                                        return ~k.indexOf(index + '_');
-                                    });
-                                    if (foundKeys.length > 0) {
-                                        delete curModel.__symElementIds[foundKeys[0]];
-                                    }
-                                    needToRerender = true;
-                                }
-                            } else {
-                                indexOfSymElement = curModel.__symElementIds.indexOf(curChild.__symElementId);
-                                needToRerender = (indexOfSymElement === -1);
-                            }
-                            if (needToRerender) { //if rerendering is necessary, current element is replaced with newly created element.
-                                var clonedItem = cloneLoopTemplate(elem, curModel, itemModel, key, index);
-                                var delIndex = -1;
-                                if (curChild.model) {
-                                    for (var innerModelName in curChild.model) {
-                                        if (curChild.model.hasOwnProperty(innerModelName)) {
-                                            var innerModel = curChild.model[innerModelName];
-                                            if (Array.isArray(innerModel.__symElementIds)) {
-                                                delIndex = innerModel.__symElementIds.indexOf(curChild.__symElementId);
-                                            }
-                                            innerModel.__symElementIds.splice(delIndex, 1);
-                                        }
-                                    }
-                                }
-                                createModelScope(clonedItem);
-                                deepRenderAttrAndText(clonedItem);
-                                curChild.parentNode.replaceChild(clonedItem, curChild);
-                            }
-
-                        } else { //initially preRenderedCount equals to 0, new elements are rendered according to model
-                            var clonedItem = cloneLoopTemplate(elem, curModel, itemModel, key, index);
-
-                            elem.appendChild(clonedItem);
-                            createModelScope(clonedItem);
-                            deepRenderAttrAndText(clonedItem);
-                        }
-                        index++;
-                    }
-                    //loop through difference between preRenderedCount and current index which equals to list's length in model
-                    for (var i = 0; i < preRenderedCount - index; i++) {
-                        //if this difference is greater than zero, previously rendered element should be removed from screen.
-                        var preElem = elem.childNodes[preRenderedCount - i - 1];
-                        preElem.parentNode.removeChild(preElem);
+                        var clonedItem = cloneLoopTemplate(elem, curModel, itemModel, key);
+                        elem.appendChild(clonedItem);
+                        createModelScope(clonedItem);
+                        deepRenderAttrAndText(clonedItem);
                     }
                 }
             }
