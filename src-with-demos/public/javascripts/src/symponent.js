@@ -98,16 +98,19 @@
      * @param {Object} o - object will be searched for field in 's' parameter(s).
      * @param {string} s - string nested field names in 'o' object.
      */
-    function getObjectByString(o, s) {
+    function getObjectByString(o, s, optionalDefault) {
         s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
         s = s.replace(/^\./, '');           // strip a leading dot
         var a = s.split('.');
+        o = o || {};
         for (var i = 0, n = a.length; i < n; ++i) {
             var k = a[i];
             if (k in o) {
                 o = o[k];
             } else {
-                return;
+                o[k] = optionalDefault || {};
+                o = o[k];
+                break;
             }
         }
         return o;
@@ -706,11 +709,27 @@
                 httpEquiv: 'http-equiv',
                 httpequiv: 'http-equiv'
             },
+            keywords = {
+                prefix: '__sym',
+                id: '__symElementId',
+                nested: '__symNested',
+                modelKey: '__symModelKey',
+                elements: '__symElements',
+                observable: '__symObservable',
+                bound: '__symBound'
+            },
+            specialAttributes = [
+                'loopTemplate',
+                'loopModel',
+                'nested',
+                'fromUp',
+                'childSelector'
+            ],
             idPrefix = 'sym-element-',
             idCounter = 0;
 
         //model detection regexp and its execution result definitions
-        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$][0-9a-zA-Z.:\s'"?!=|&+\-*\/\[\]$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g,
+        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$()][0-9a-zA-Z.:\s'"?!=|&><+\-*\/\[\]()$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g,
             weedOutReg = /[a-zA-Z_$][0-9a-zA-Z_$]*([.][a-zA-Z_$][0-9a-zA-Z_$]*)+/g,
             execResult;
 
@@ -734,7 +753,15 @@
          * @param {string} str - String parameter which will be checked.
          */
         function isTemplateSyntax(str) {
-            return (typeof str === 'string' && ~str.indexOf('{') && ~str.indexOf('}'));
+            return (typeof str === 'string' && str.match(modelReg));
+        }
+
+        /**
+         * removes curly brackets and spaces from given string and returns.
+         * @param {string} str 
+         */
+        function clearTemplateSyntax(str) {
+            return str.replace(/^(\s*\{\s*)|(\s*\}\s*)$/g, '');
         }
 
         /**
@@ -772,12 +799,12 @@
             var parsedValue = nakedValue;
             if (isTemplateSyntax(nakedValue)) {
                 var $index = -1;
-                var parsedIndex = parseInt(elem.__symModelKey);
+                var parsedIndex = parseInt(elem[keywords.modelKey]);
                 if (!isNaN(parseInt(parsedIndex))) {
                     $index = parsedIndex;
                 }
                 else {
-                    $index = elem.__symModelKey;
+                    $index = elem[keywords.modelKey];
                 }
                 while ((execResult = modelReg.exec(nakedValue)) !== null) {
                     var executableValue = execResult[1];
@@ -819,6 +846,49 @@
             });
         }
 
+
+        /**
+         * Copies self defined attributes, templates, template models to new elements from old element.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} newElem - Newly created DOM element.
+         * @param {Object} oldElem - Old DOM element.
+         */
+        function deepCopyCustomAttributes(newElem, oldElem) {
+            for (var i = 0; i < oldElem.childNodes.length; i++) {
+                deepCopyCustomAttributes(newElem.childNodes[i], oldElem.childNodes[i]);
+            }
+            if (oldElem.loopTemplate && !newElem.loopTemplate) {
+                newElem.loopTemplate = oldElem.loopTemplate;
+            }
+            if (oldElem.loopModel && !newElem.loopModel) {
+                newElem.loopModel = oldElem.loopModel;
+            }
+            for (var key in oldElem.attributes) {
+                if (oldElem.attributes.hasOwnProperty(key) && !(oldElem.attributes[key] instanceof Attr)) {
+                    newElem.attributes[key] = oldElem.attributes[key];
+                } else if (oldElem.attributes.hasOwnProperty(key) && isTemplateSyntax(oldElem.attributes[key].value)) {
+                    newElem.attributes['__naked' + oldElem.attributes[key].name] = oldElem.attributes[key].value;
+                }
+            };
+        }
+
+        /**
+         * Copies events to new elements from old element.
+         * @memberOf sym
+         * @private
+         * @inner
+         * @param {Object} newElem - Newly created DOM element.
+         * @param {Object} oldElem - Old DOM element.
+         */
+        function deepCopyCustomEvents(newElem, oldElem) {
+            for (var i = 0; i < oldElem.childNodes.length; i++) {
+                deepCopyCustomEvents(newElem.childNodes[i], oldElem.childNodes[i]);
+            }
+            addEventListeners(newElem, oldElem.symEvents);
+        }
+
         /**
          * Copies self defined attributes, templates, models and etc. to cloned(new) elements from template(old) element.
          * @memberOf sym
@@ -848,10 +918,12 @@
                 }
                 addEventListeners(newElem, oldElem.symEvents);
 
-                newElem.__symElementId = generateId();
+                newElem[keywords.id] = generateId();
                 for (var key in oldElem.attributes) {
                     if (oldElem.attributes.hasOwnProperty(key) && !(oldElem.attributes[key] instanceof Attr)) {
                         newElem.attributes[key] = oldElem.attributes[key];
+                    } else if (oldElem.attributes.hasOwnProperty(key) && isTemplateSyntax(oldElem.attributes[key].value)) {
+                        newElem.attributes['__naked' + oldElem.attributes[key].name] = oldElem.attributes[key].value;
                     }
                 };
             }
@@ -903,21 +975,21 @@
          * @param {string} propValue - Property's value to define re-render logic.
          */
         function defineGetterAndStter(model, propName, propValue) {
-            Object.defineProperty(model, '__sym' + propName, {
+            Object.defineProperty(model, keywords.prefix + propName, {
                 enumerable: false,
                 value: propValue,
                 writable: true
             });
             Object.defineProperty(model, propName,
                 {
-                    get: function () { return model['__sym' + propName] },
+                    get: function () { return model[keywords.prefix + propName] },
                     set: function (val) {
-                        var oldVal = model['__sym' + propName];
-                        model['__sym' + propName] = val;
+                        var oldVal = model[keywords.prefix + propName];
+                        model[keywords.prefix + propName] = val;
                         if (oldVal != val) {
-                            if (model && model.__symBound && isIterable(model.__symBound[propName])) {
-                                for (var curId in model.__symBound[propName]) {
-                                    var curBoundElemProps = model.__symBound[propName][curId];
+                            if (model && model[keywords.bound] && isIterable(model[keywords.bound][propName])) {
+                                for (var curId in model[keywords.bound][propName]) {
+                                    var curBoundElemProps = model[keywords.bound][propName][curId];
                                     renderAttributeOrText(curBoundElemProps.elem, curBoundElemProps.attributes);
                                 }
                             }
@@ -991,8 +1063,8 @@
                 var model = getObjectByString(elem.model, modelName);
 
                 //define bound elements' container object
-                if (!model.hasOwnProperty('__symBound')) {
-                    Object.defineProperty(model, '__symBound', {
+                if (!model.hasOwnProperty(keywords.bound)) {
+                    Object.defineProperty(model, keywords.bound, {
                         enumerable: false,
                         value: {},
                         writable: true
@@ -1003,15 +1075,15 @@
                 if (model && !model.hasOwnProperty(propertyName)) {
                     defineGetterAndStter(model, propertyName, undefined);
                 }
-                if (!model.__symBound[propertyName]) {
-                    model.__symBound[propertyName] = {};
+                if (!model[keywords.bound][propertyName]) {
+                    model[keywords.bound][propertyName] = {};
                 }
-                if (!model.__symBound[propertyName][elemId]) {
-                    model.__symBound[propertyName][elemId] = {
+                if (!model[keywords.bound][propertyName][elemId]) {
+                    model[keywords.bound][propertyName][elemId] = {
                         elem: elem
                     };
                 }
-                var elementProps = model.__symBound[propertyName][elemId];
+                var elementProps = model[keywords.bound][propertyName][elemId];
                 if (!elementProps.attributes) {
                     elementProps.attributes = [];
                 }
@@ -1042,11 +1114,11 @@
             }
             //assign current model to list-item element
             clonedItem.model[elem.loopTemplate.loopModel.name] = itemModel[key];
-            clonedItem.__symModelKey = key;
+            clonedItem[keywords.modelKey] = key;
 
             //creates a list if it is not exists in model, adds unique __symElementId to that list
-            if (curModel.__symElements) {
-                curModel.__symElements[clonedItem.__symElementId] = clonedItem;
+            if (curModel[keywords.elements]) {
+                curModel[keywords.elements][clonedItem[keywords.id]] = clonedItem;
             }
             return clonedItem;
         }
@@ -1059,8 +1131,8 @@
          * @param {Object} curModel - model object to define property.
          */
         function defineSymElementIdProperty(curModel) {
-            if (!curModel.__symElements) {
-                Object.defineProperty(curModel, '__symElements', {
+            if (!curModel[keywords.elements]) {
+                Object.defineProperty(curModel, keywords.elements, {
                     enumerable: false,
                     value: {},
                     writable: true
@@ -1077,8 +1149,8 @@
          * @param {Object} elem - DOM element to re-render if any change is occurred in given array.
          */
         function makeArrayObservable(model, elem) {
-            if (Array.isArray(model) && !model.__symObservable) {
-                Object.defineProperty(model, '__symObservable', { value: true });
+            if (Array.isArray(model) && !model[keywords.observable]) {
+                Object.defineProperty(model, keywords.observable, { value: true });
 
                 Object.defineProperty(model, 'unshift', {
                     value: function () {
@@ -1153,21 +1225,21 @@
                             var curModel = result[i];
                             if (isPrimitive(curModel)) {
                                 curModel = this;
-                                var keys = Object.keys(curModel.__symElements);
-                                var curElem = curModel.__symElements[keys[i]];
+                                var keys = Object.keys(curModel[keywords.elements]);
+                                var curElem = curModel[keywords.elements][keys[i]];
                                 if (curElem.parentNode) {
                                     curElem.parentNode.removeChild(curElem);
                                 }
-                                delete curModel.__symElements[keys[i]];
+                                delete curModel[keywords.elements][keys[i]];
                             }
                             else {
-                                var keys = Object.keys(curModel.__symElements);
+                                var keys = Object.keys(curModel[keywords.elements]);
                                 for (var j = 0; j < keys.length; j++) {
-                                    var curElem = curModel.__symElements[keys[j]];
+                                    var curElem = curModel[keywords.elements][keys[j]];
                                     if (curElem.parentNode) {
                                         curElem.parentNode.removeChild(curElem);
                                     }
-                                    delete curModel.__symElements[keys[j]];
+                                    delete curModel[keywords.elements][keys[j]];
                                 }
                             }
                         }
@@ -1201,20 +1273,15 @@
          * @param {Object} elem - Parent DOM element which will be container of generated list from loopModel.
          */
         function renderItemList(elem) {
-            if (elem.loopTemplate) {
+            if (elem.loopTemplate instanceof Node) {
                 var itemModel = elem.loopTemplate.loopModel.list;
-
                 //itemModel needs to be evaluated if it contains template syntax.
                 if (isTemplateSyntax(itemModel)) {
-                    while ((execResult = weedOutReg.exec(itemModel)) !== null) {
-                        var propertyName = execResult[1],
-                            modelName = execResult[0].replace(propertyName, '');
-                        itemModel = getObjectByString(elem.model[modelName], propertyName);
-                    }
+                    itemModel = getObjectByString(elem.model, clearTemplateSyntax(itemModel));
                 }
 
                 makeArrayObservable(itemModel, elem);
-                if ((Array.isArray(itemModel) || typeof itemModel === 'object') && elem.loopTemplate instanceof Node) {
+                if ((Array.isArray(itemModel) || typeof itemModel === 'object')) {
                     elem.innerHTML = '';
                     for (var key in itemModel) {
                         var curModel = itemModel[key];
@@ -1228,6 +1295,29 @@
                         createModelScope(clonedItem);
                         deepRenderAttrAndText(clonedItem);
                     }
+                }
+            } else if (elem.attributes && elem.attributes.__nakednested) {
+                var deep = elem.attributes.__nakedfromUp || 1,
+                    childSelector = elem.attributes.__nakedchildSelector;
+                if (!elem.calculatedParent) {
+                    elem.calculatedParent = elem.parentNode;
+                    if (elem.calculatedParent) {
+                        for (var i = 1; i < deep; i++) {
+                            elem.calculatedParent = elem.calculatedParent.parentNode;
+                        }
+                    }
+                }
+                if (elem.calculatedParent) {
+                    var newModel = getObjectByString(elem.model, childSelector, []),
+                        clonedParent = elem.calculatedParent.cloneNode(false);
+                    clonedParent.loopTemplate = elem.calculatedParent.loopTemplate.cloneNode(true);
+                    clonedParent.loopTemplate.loopModel = self.createLoopModel(elem.calculatedParent.loopTemplate.loopModel.name, newModel);
+
+                    defineSymElementIdProperty(newModel);
+                    deepCopyCustomEvents(clonedParent.loopTemplate, elem.calculatedParent.loopTemplate);
+                    deepCopyCustomAttributes(clonedParent.loopTemplate, elem.calculatedParent.loopTemplate);
+                    elem.appendChild(clonedParent);
+                    renderItemList(clonedParent);
                 }
             }
         }
@@ -1248,7 +1338,7 @@
                             attrName = attr.name.toLowerCase(),
                             nakedValue = elem.attributes['__naked' + attrName];
                         if (isTemplateSyntax(nakedValue)) {
-                            setBoundElements(nakedValue, elem, elem.__symElementId, attrName);
+                            setBoundElements(nakedValue, elem, elem[keywords.id], attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (~attrName.indexOf('data-sym-attr-')) {
                                 var nakedAttrName = attrName.replace('data-sym-attr-', '');
@@ -1344,7 +1434,7 @@
                         var attr = elem.attributes[attrName],
                             nakedValue = elem.attributes['__naked' + attrName];
                         if (isTemplateSyntax(nakedValue)) {
-                            setBoundElements(nakedValue, elem, elem.__symElementId, attrName);
+                            setBoundElements(nakedValue, elem, elem[keywords.id], attrName);
                             attr.value = findAndReplaceExecResult(elem, nakedValue, elem.model);
                             if (~attrName.indexOf('data-sym-attr-')) {
                                 var nakedAttrName = attrName.replace('data-sym-attr-', '');
@@ -1400,8 +1490,8 @@
                         }
                     }
                 }
-                if (elem.hasOwnProperty('__symModelKey') && !curChild.hasOwnProperty('__symModelKey')) {
-                    curChild.__symModelKey = elem.__symModelKey;
+                if (elem.hasOwnProperty(keywords.modelKey) && !curChild.hasOwnProperty(keywords.modelKey)) {
+                    curChild[keywords.modelKey] = elem[keywords.modelKey];
                 }
                 createModelScope(curChild, force);
             }
@@ -1494,6 +1584,9 @@
         self.createElement = function (tagName, attrs) {
             var childList = Array.prototype.slice.call(arguments, 2),
                 elem;
+
+            attrs = attrs || {};
+            attrs.model = attrs.model || {};
             if (tagName && typeof tagName === 'string') {
                 tagName = tagName.toLowerCase();
             }
@@ -1505,57 +1598,50 @@
                 else {
                     elem = document.createElement(tagName);
                 }
-                elem.__symElementId = generateId();
+                elem[keywords.id] = generateId();
 
-                if (typeof attrs === 'object') {
+                if (attrs.model && typeof attrs.model === 'object') {
+                    if (!elem.model) {
+                        elem.model = attrs.model;
+                    }
+                } else if (!elem.model) {
+                    elem.model = {};
+                }
+                if (attrs.events) {
+                    elem.symEvents = attrs.events;
+                    addEventListeners(elem);
+                }
 
-                    if (attrs.model && typeof attrs.model === 'object') {
-                        if (!elem.model) {
-                            elem.model = attrs.model;
-                        }
-                    } else if (!elem.model) {
-                        elem.model = {};
-                    }
-
-                    if (attrs.loopTemplate && !elem.loopTemplate) {
-                        elem.loopTemplate = attrs.loopTemplate;
-                    }
-                    if (attrs.loopModel && !elem.loopModel) {
-                        elem.loopModel = attrs.loopModel;
-                    }
-                    if (attrs.events) {
-                        elem.symEvents = attrs.events;
-                        addEventListeners(elem);
-                    }
-
-                    for (var key in attrs) {
-                        var isPropCompletelyValid = allowedProperties.hasOwnProperty(key),
-                            validPropName = DOMPropertyNames[key] ? DOMPropertyNames[key] : key;
-                        if (~validPropName.indexOf('data-sym-attr-')) {
-                            var nakedAttrName = validPropName.replace('data-sym-attr-', '');
-                            if (isSVGRelated && (allowedSVGProperties.hasOwnProperty(nakedAttrName) || allowedSVGProperties.hasOwnProperty(capitalizedAttribute(nakedAttrName)))) {
-                                isPropCompletelyValid = true;
-                            } else if (allowedProperties.hasOwnProperty(nakedAttrName) || allowedProperties.hasOwnProperty(capitalizedAttribute(nakedAttrName))) {
-                                isPropCompletelyValid = true;
-                            }
-                        } else if (isCustomAttribute(key)) {
+                for (var key in attrs) {
+                    var isPropCompletelyValid = allowedProperties.hasOwnProperty(key),
+                        validPropName = DOMPropertyNames[key] ? DOMPropertyNames[key] : key;
+                    if (~validPropName.indexOf('data-sym-attr-')) {
+                        var nakedAttrName = validPropName.replace('data-sym-attr-', '');
+                        if (isSVGRelated && (allowedSVGProperties.hasOwnProperty(nakedAttrName) || allowedSVGProperties.hasOwnProperty(capitalizedAttribute(nakedAttrName)))) {
                             isPropCompletelyValid = true;
-                        } else {
-                            if (isSVGRelated && (allowedSVGProperties.hasOwnProperty(validPropName) || allowedSVGProperties.hasOwnProperty(capitalizedAttribute(validPropName)))) {
-                                isPropCompletelyValid = true;
-                            } else if (allowedProperties.hasOwnProperty(validPropName) || allowedProperties.hasOwnProperty(capitalizedAttribute(validPropName))) {
-                                isPropCompletelyValid = true;
-                            }
+                        } else if (allowedProperties.hasOwnProperty(nakedAttrName) || allowedProperties.hasOwnProperty(capitalizedAttribute(nakedAttrName))) {
+                            isPropCompletelyValid = true;
                         }
+                    } else if (isCustomAttribute(key)) {
+                        isPropCompletelyValid = true;
+                    } else {
+                        if (isSVGRelated && (allowedSVGProperties.hasOwnProperty(validPropName) || allowedSVGProperties.hasOwnProperty(capitalizedAttribute(validPropName)))) {
+                            isPropCompletelyValid = true;
+                        } else if (allowedProperties.hasOwnProperty(validPropName) || allowedProperties.hasOwnProperty(capitalizedAttribute(validPropName))) {
+                            isPropCompletelyValid = true;
+                        }
+                    }
 
-                        if (isPropCompletelyValid) {
-                            elem.setAttribute(validPropName, attrs[key]);
-                            validPropName = validPropName.toLowerCase();
-                            if (isTemplateSyntax(attrs[key])) {
-                                elem.attributes['__naked' + validPropName] = attrs[key];
-                                defineEmptySetter(elem.attributes, '__naked' + validPropName);
-                            }
+                    if (isPropCompletelyValid) {
+                        elem.setAttribute(validPropName, attrs[key]);
+                        validPropName = validPropName.toLowerCase();
+                        if (isTemplateSyntax(attrs[key])) {
+                            elem.attributes['__naked' + validPropName] = attrs[key];
+                            defineEmptySetter(elem.attributes, '__naked' + validPropName);
                         }
+                    } else if (~specialAttributes.indexOf(key)) {
+                        elem[key] = attrs[key];
+                        elem.attributes['__naked' + key] = attrs[key];
                     }
                 }
 
@@ -1572,6 +1658,13 @@
                         }
                     }
                 }
+            } else if (tagName[keywords.id]) {
+                elem = tagName.cloneNode(true);
+                deepCopyCustomAttributesAndEvents(elem, tagName);
+                if (attrs.model && typeof attrs.model === 'object') {
+                    elem.model = attrs.model;
+                }
+                elem.model = elem.model || {};
             }
             return elem;
         }
