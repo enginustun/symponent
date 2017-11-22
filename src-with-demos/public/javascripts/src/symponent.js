@@ -729,7 +729,7 @@
             idCounter = 0;
 
         //model detection regexp and its execution result definitions
-        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$()][0-9a-zA-Z.:\s'"?!=|&><+\-*\/\[\]()$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g,
+        var modelReg = /[{]\s*([!]{0,1}\s*[a-zA-Z_$()][0-9a-zA-Z.:\s'"?!=|&><+\-*%\/\[\]()$şŞıİçÇöÖüÜĞğ]*)\s*[}]/g,
             weedOutReg = /[a-zA-Z_$][0-9a-zA-Z_$]*([.][a-zA-Z_$][0-9a-zA-Z_$]*)+/g,
             execResult;
 
@@ -1348,19 +1348,18 @@
                                 elem.value = attr.value;
                             }
                         }
-                        if (attrName === 'checked') {
-                            if (!(attr.value === 'true')) {
-                                removeChecked = true;
-                            }
-                            else if (attr.value.toLowerCase() === 'true' || attr.value.toLowerCase() === 'checked') {
-                                elem.checked = true;
-                                elem.setAttribute('checked', true);
-                            }
+                    }
+                    //checked attribute specific control
+                    var nakedCheckedValue = elem.attributes.__nakedchecked;
+                    if (isTemplateSyntax(nakedCheckedValue)) {
+                        setBoundElements(nakedCheckedValue, elem, elem[keywords.id], 'checked');
+                        var checkedValue = findAndReplaceExecResult(elem, nakedCheckedValue, elem.model);
+                        if (checkedValue.toLowerCase() === 'true' || checkedValue.toLowerCase() === 'checked') {
+                            elem.checked = true;
+                            elem.setAttribute('checked', true);
                         }
                     }
-                    if (removeChecked) {
-                        elem.checked = false;
-                    }
+
                     if ('render' in elem.attributes) {
                         if (!elem.commentNode) {
                             elem.commentNode = document.createComment('sym-render');
@@ -1427,10 +1426,6 @@
                 if (elem.attributes) {
                     for (var i = 0; i < attributes.length; i++) {
                         var attrName = attributes[i];
-                        if (attrName === 'checked') {
-                            elem.checked = true;
-                            elem.setAttribute('checked', true);
-                        }
                         var attr = elem.attributes[attrName],
                             nakedValue = elem.attributes['__naked' + attrName];
                         if (isTemplateSyntax(nakedValue)) {
@@ -1443,9 +1438,6 @@
                             if (attrName === 'value') {
                                 elem.value = attr.value;
                             }
-                        }
-                        if (attrName === 'checked' && !(attr.value === 'true')) {
-                            elem.checked = false;
                         }
                         if (attrName === 'render') {
                             if (!elem.commentNode) {
@@ -1632,7 +1624,10 @@
                         }
                     }
 
-                    if (isPropCompletelyValid) {
+                    if (validPropName === 'checked') {
+                        elem.attributes.__nakedchecked = attrs[key];
+                        defineEmptySetter(elem.attributes, '__nakedchecked');
+                    } else if (isPropCompletelyValid) {
                         elem.setAttribute(validPropName, attrs[key]);
                         validPropName = validPropName.toLowerCase();
                         if (isTemplateSyntax(attrs[key])) {
